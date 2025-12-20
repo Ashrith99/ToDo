@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { CheckSquare, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { CheckSquare, Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const Login = () => {
@@ -41,40 +41,61 @@ const Login = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <LoadingSpinner size="large" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <CheckSquare className="text-primary-600" size={48} />
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-          Sign in to your account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
-          <Link
-            to="/register"
-            className="font-medium text-primary-600 hover:text-primary-500"
-          >
-            create a new account
-          </Link>
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
+      {/* Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full opacity-20 animate-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div className="relative sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse-glow">
+              <Sparkles className="text-white" size={32} />
+            </div>
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center">
+              <CheckSquare className="text-white" size={12} />
+            </div>
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">
+            Welcome Back
+          </h2>
+          <p className="text-gray-600 text-lg">
+            Sign in to your premium account
+          </p>
+          <p className="mt-4 text-sm text-gray-500">
+            Don't have an account?{' '}
+            <Link
+              to="/register"
+              className="font-semibold text-blue-600 hover:text-blue-500 transition-colors"
+            >
+              Create one now
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      <div className="relative sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="floating-card p-6 md:p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                 Email address
               </label>
-              <div className="mt-1 relative">
+              <div className="relative">
                 <input
                   id="email"
                   name="email"
@@ -83,18 +104,18 @@ const Login = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="input-field pl-10"
+                  className="input-field pl-12"
                   placeholder="Enter your email"
                 />
-                <Mail className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
-              <div className="mt-1 relative">
+              <div className="relative">
                 <input
                   id="password"
                   name="password"
@@ -103,14 +124,14 @@ const Login = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="input-field pl-10 pr-10"
+                  className="input-field pl-12 pr-12"
                   placeholder="Enter your password"
                 />
-                <Lock className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -121,32 +142,39 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full premium-button disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
-                  <div className="flex items-center justify-center space-x-2">
+                  <div className="flex items-center justify-center space-x-3">
                     <LoadingSpinner size="small" />
                     <span>Signing in...</span>
                   </div>
                 ) : (
-                  'Sign in'
+                  <div className="flex items-center justify-center space-x-2">
+                    <span>Sign In</span>
+                    <ArrowRight size={18} />
+                  </div>
                 )}
               </button>
             </div>
           </form>
 
-          <div className="mt-6">
+          {/* Demo Credentials */}
+          <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Demo credentials</span>
+                <span className="px-4 bg-white text-gray-500 font-medium">Demo Account</span>
               </div>
             </div>
-            <div className="mt-3 text-center text-sm text-gray-600">
-              <p>Email: demo@example.com</p>
-              <p>Password: demo123</p>
+            <div className="mt-4 glass-card p-4 text-center">
+              <p className="text-sm font-semibold text-gray-700 mb-2">Try the demo:</p>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p><span className="font-medium">Email:</span> demo@example.com</p>
+                <p><span className="font-medium">Password:</span> demo123</p>
+              </div>
             </div>
           </div>
         </div>

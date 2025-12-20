@@ -35,7 +35,10 @@ app.use('*', (req, res) => {
 });
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp', {
+  serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+})
   .then(() => {
     console.log('Connected to MongoDB');
     const PORT = process.env.PORT || 5000;

@@ -13,7 +13,7 @@ router.get('/', auth, async (req, res) => {
   try {
     const tasks = await Task.find({ userId: req.user._id })
       .populate('subtasks')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }); // Sort by newest first
     
     res.json({ tasks });
   } catch (error) {

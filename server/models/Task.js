@@ -64,7 +64,7 @@ taskSchema.statics.findTasksForDate = function(userId, date) {
     userId,
     startDate: { $lte: endOfDay },
     endDate: { $gte: startOfDay }
-  }).populate('subtasks');
+  }).populate('subtasks').sort({ createdAt: -1 }); // Sort by newest first
 };
 
 module.exports = mongoose.model('Task', taskSchema);
