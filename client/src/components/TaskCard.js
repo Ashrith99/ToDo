@@ -5,6 +5,7 @@ import SubtaskItem from './SubtaskItem';
 import SubtaskForm from './SubtaskForm';
 import ConfirmModal from './ConfirmModal';
 import { useConfirm } from '../hooks/useConfirm';
+import toast from 'react-hot-toast';
 
 const TaskCard = ({ task, showDateRange = true }) => {
   const { deleteTask, updateTask } = useTask();
@@ -23,7 +24,20 @@ const TaskCard = ({ task, showDateRange = true }) => {
 
   const handleTaskToggle = async () => {
     setIsUpdating(true);
-    await updateTask(task._id, { completed: !task.completed });
+    const wasCompleted = task.completed;
+    const result = await updateTask(task._id, { completed: !task.completed });
+    
+    // Show feedback for auto-completion
+    if (result.success && !wasCompleted && totalSubtasks > 0) {
+      // Task was marked complete, which auto-completed all subtasks
+      toast.success(`Task completed! All ${totalSubtasks} subtasks were automatically marked as done.`);
+    } else if (result.success && wasCompleted && totalSubtasks > 0) {
+      // Task was marked incomplete, which auto-incompleted all subtasks
+      toast(`Task marked incomplete. All subtasks were automatically unchecked.`, {
+        icon: 'ℹ️',
+      });
+    }
+    
     setIsUpdating(false);
   };
 

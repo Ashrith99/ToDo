@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2, Edit3, Save, X, MessageSquare } from 'lucide-react';
 import { useTask } from '../context/TaskContext';
+import toast from 'react-hot-toast';
 
 const SubtaskInstanceItem = ({ subtaskInstance, taskInstanceId }) => {
   const { updateSubtask, deleteSubtask, toggleSubtaskInstanceComplete } = useTask();
@@ -14,7 +15,24 @@ const SubtaskInstanceItem = ({ subtaskInstance, taskInstanceId }) => {
 
   const handleToggleComplete = async () => {
     setIsUpdating(true);
-    await toggleSubtaskInstanceComplete(taskInstanceId, subtask._id);
+    const wasCompleted = subtaskInstance.completed;
+    const result = await toggleSubtaskInstanceComplete(taskInstanceId, subtask._id);
+    
+    // The backend will return the updated task instance, so we can check if the parent task was auto-completed
+    if (result.success && result.taskInstance) {
+      const parentTaskCompleted = result.taskInstance.completed;
+      const allSubtasksCompleted = result.taskInstance.subtaskInstances.every(si => si.completed);
+      
+      // Show feedback for auto-completion of parent task
+      if (!wasCompleted && parentTaskCompleted && allSubtasksCompleted) {
+        toast.success('🎉 All subtasks completed! Main task was automatically marked as done.');
+      } else if (wasCompleted && !parentTaskCompleted) {
+        toast('Main task was automatically unchecked since not all subtasks are complete.', {
+          icon: 'ℹ️',
+        });
+      }
+    }
+    
     setIsUpdating(false);
   };
 

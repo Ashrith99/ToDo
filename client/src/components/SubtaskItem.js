@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2, Edit3, Save, X, MessageSquare } from 'lucide-react';
 import { useTask } from '../context/TaskContext';
+import toast from 'react-hot-toast';
 import ConfirmModal from './ConfirmModal';
 import { useConfirm } from '../hooks/useConfirm';
 
@@ -15,7 +16,16 @@ const SubtaskItem = ({ subtask }) => {
 
   const handleToggleComplete = async () => {
     setIsUpdating(true);
-    await updateSubtask(subtask._id, { completed: !subtask.completed });
+    const wasCompleted = subtask.completed;
+    const result = await updateSubtask(subtask._id, { completed: !subtask.completed });
+    
+    // Show feedback for auto-completion (we'll need to check the parent task status)
+    if (result.success && !wasCompleted) {
+      // Check if this was the last subtask to complete
+      // Note: The backend handles the auto-completion, but we don't get the parent task back
+      // We could add a toast here if needed, but it might be too noisy
+    }
+    
     setIsUpdating(false);
   };
 

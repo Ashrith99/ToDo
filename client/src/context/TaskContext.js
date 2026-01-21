@@ -223,7 +223,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const response = await taskInstanceAPI.toggleTaskComplete(instanceId);
       dispatch({ type: 'UPDATE_TASK_INSTANCE', payload: response.data.taskInstance });
-      return { success: true };
+      return { success: true, taskInstance: response.data.taskInstance };
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to update task';
       toast.error(message);
@@ -236,7 +236,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const response = await taskInstanceAPI.toggleSubtaskComplete(instanceId, subtaskId);
       dispatch({ type: 'UPDATE_TASK_INSTANCE', payload: response.data.taskInstance });
-      return { success: true };
+      return { success: true, taskInstance: response.data.taskInstance };
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to update subtask';
       toast.error(message);
