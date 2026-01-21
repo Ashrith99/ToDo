@@ -1,21 +1,21 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Calendar, Home, Plus, List, CheckSquare, X, Sparkles, TrendingUp } from 'lucide-react';
+import { Calendar, Plus, List, CheckSquare, X, Sparkles, TrendingUp } from 'lucide-react';
 
 const Sidebar = ({ onClose }) => {
   const navItems = [
     {
-      to: '/today',
-      icon: Home,
-      label: 'Today',
-      description: 'Today\'s tasks',
+      to: '/tasks',
+      icon: CheckSquare,
+      label: 'Tasks',
+      description: 'Static tasks',
       color: 'from-blue-500 to-indigo-500'
     },
     {
       to: '/calendar',
       icon: Calendar,
       label: 'Calendar',
-      description: 'Browse by date',
+      description: 'Date-based tasks',
       color: 'from-purple-500 to-pink-500'
     },
     {

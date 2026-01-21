@@ -10,8 +10,9 @@ const CreateTask = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    startDate: new Date(),
-    endDate: new Date()
+    startDate: null,
+    endDate: null,
+    isDateBased: false // New field to toggle date-based vs static task
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
@@ -53,14 +54,17 @@ const CreateTask = () => {
       newErrors.title = 'Task title cannot exceed 200 characters';
     }
 
-    if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
-    }
+    // Only validate dates if it's a date-based task
+    if (formData.isDateBased) {
+      if (!formData.startDate) {
+        newErrors.startDate = 'Start date is required for date-based tasks';
+      }
 
-    if (!formData.endDate) {
-      newErrors.endDate = 'End date is required';
-    } else if (formData.startDate && formData.endDate < formData.startDate) {
-      newErrors.endDate = 'End date must be after or equal to start date';
+      if (!formData.endDate) {
+        newErrors.endDate = 'End date is required for date-based tasks';
+      } else if (formData.startDate && formData.endDate < formData.startDate) {
+        newErrors.endDate = 'End date must be after or equal to start date';
+      }
     }
 
     setErrors(newErrors);
@@ -77,15 +81,19 @@ const CreateTask = () => {
     setIsSubmitting(true);
     
     const taskData = {
-      title: formData.title.trim(),
-      startDate: formData.startDate.toISOString(),
-      endDate: formData.endDate.toISOString()
+      title: formData.title.trim()
     };
+
+    // Only add dates if it's a date-based task
+    if (formData.isDateBased && formData.startDate && formData.endDate) {
+      taskData.startDate = formData.startDate.toISOString();
+      taskData.endDate = formData.endDate.toISOString();
+    }
 
     const result = await createTask(taskData);
     
     if (result.success) {
-      navigate('/today');
+      navigate(formData.isDateBased ? '/calendar' : '/tasks');
     }
     
     setIsSubmitting(false);
@@ -122,7 +130,7 @@ const CreateTask = () => {
           <h1 className="text-3xl font-bold text-gray-900">Create New Task</h1>
         </div>
         <p className="text-gray-600">
-          Create a task that will appear daily within your specified date range
+          Create a static task or a date-based task that appears within a specific date range
         </p>
       </div>
 
@@ -151,41 +159,72 @@ const CreateTask = () => {
             </p>
           </div>
 
-          {/* Date Range */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Date *
+          {/* Task Type Toggle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Task Type *
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="taskType"
+                  checked={!formData.isDateBased}
+                  onChange={() => setFormData({ ...formData, isDateBased: false, startDate: null, endDate: null })}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-700">Static Task (no dates)</span>
               </label>
-              <DatePicker
-                selected={formData.startDate}
-                onChange={(date) => handleDateChange(date, 'startDate')}
-                className={`input-field ${errors.startDate ? 'border-red-300' : ''}`}
-                dateFormat="MMM dd, yyyy"
-                minDate={new Date()}
-                placeholderText="Select start date"
-              />
-              {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                End Date *
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="taskType"
+                  checked={formData.isDateBased}
+                  onChange={() => setFormData({ ...formData, isDateBased: true, startDate: new Date(), endDate: new Date() })}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-700">Date-based Task</span>
               </label>
-              <DatePicker
-                selected={formData.endDate}
-                onChange={(date) => handleDateChange(date, 'endDate')}
-                className={`input-field ${errors.endDate ? 'border-red-300' : ''}`}
-                dateFormat="MMM dd, yyyy"
-                minDate={formData.startDate || new Date()}
-                placeholderText="Select end date"
-              />
-              {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
             </div>
           </div>
 
-          {/* Date Range Preview */}
-          {formData.startDate && formData.endDate && (
+          {/* Date Range - only show if date-based */}
+          {formData.isDateBased && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date *
+                </label>
+                <DatePicker
+                  selected={formData.startDate}
+                  onChange={(date) => handleDateChange(date, 'startDate')}
+                  className={`input-field ${errors.startDate ? 'border-red-300' : ''}`}
+                  dateFormat="MMM dd, yyyy"
+                  minDate={new Date()}
+                  placeholderText="Select start date"
+                />
+                {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date *
+                </label>
+                <DatePicker
+                  selected={formData.endDate}
+                  onChange={(date) => handleDateChange(date, 'endDate')}
+                  className={`input-field ${errors.endDate ? 'border-red-300' : ''}`}
+                  dateFormat="MMM dd, yyyy"
+                  minDate={formData.startDate || new Date()}
+                  placeholderText="Select end date"
+                />
+                {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* Date Range Preview - only show if date-based */}
+          {formData.isDateBased && formData.startDate && formData.endDate && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center space-x-2">
                 <Calendar className="text-blue-600" size={16} />
@@ -198,12 +237,12 @@ const CreateTask = () => {
 
           {/* Info Box */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">How it works:</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-2">Task Types:</h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Your task will appear every day from start date to end date</li>
-              <li>• You can add subtasks after creating the main task</li>
-              <li>• Each day's progress is tracked independently</li>
-              <li>• Perfect for habits, routines, or multi-day projects</li>
+              <li>• <strong>Static Tasks:</strong> Can be completed anytime, no date restrictions</li>
+              <li>• <strong>Date-based Tasks:</strong> Appear daily within your specified date range</li>
+              <li>• You can add subtasks to any task type</li>
+              <li>• Perfect for habits, routines, or one-time tasks</li>
             </ul>
           </div>
 

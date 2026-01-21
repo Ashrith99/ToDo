@@ -7,7 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Today from './pages/Today';
+import Tasks from './pages/Tasks';
 import Calendar from './pages/Calendar';
 import CreateTask from './pages/CreateTask';
 import AllTasks from './pages/AllTasks';
@@ -52,8 +52,8 @@ function App() {
                   <Layout />
                 </ProtectedRoute>
               }>
-                <Route index element={<Navigate to="/today" replace />} />
-                <Route path="today" element={<Today />} />
+                <Route index element={<Navigate to="/tasks" replace />} />
+                <Route path="tasks" element={<Tasks />} />
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="create-task" element={<CreateTask />} />
                 <Route path="all-tasks" element={<AllTasks />} />

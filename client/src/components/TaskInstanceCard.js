@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target, Clock, CheckSquare } from 'lucide-react';
 import { useTask } from '../context/TaskContext';
-import SubtaskItem from './SubtaskItem';
+import SubtaskInstanceItem from './SubtaskInstanceItem';
 import SubtaskForm from './SubtaskForm';
 import ConfirmModal from './ConfirmModal';
 import { useConfirm } from '../hooks/useConfirm';
 
-const TaskCard = ({ task, showDateRange = true }) => {
-  const { deleteTask, updateTask } = useTask();
+const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
+  const { deleteTask, toggleTaskInstanceComplete } = useTask();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showSubtaskForm, setShowSubtaskForm] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const { confirmState, showConfirm, hideConfirm, handleConfirm } = useConfirm();
+
+  const task = taskInstance.taskId;
 
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -23,7 +25,7 @@ const TaskCard = ({ task, showDateRange = true }) => {
 
   const handleTaskToggle = async () => {
     setIsUpdating(true);
-    await updateTask(task._id, { completed: !task.completed });
+    await toggleTaskInstanceComplete(taskInstance._id);
     setIsUpdating(false);
   };
 
@@ -40,14 +42,14 @@ const TaskCard = ({ task, showDateRange = true }) => {
     });
   };
 
-  const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
-  const totalSubtasks = task.subtasks?.length || 0;
+  const completedSubtasks = taskInstance.subtaskInstances?.filter(si => si.completed).length || 0;
+  const totalSubtasks = taskInstance.subtaskInstances?.length || 0;
   const progressPercentage = totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0;
 
   return (
     <>
       <div className={`floating-card p-4 md:p-6 animate-slide-up transition-all duration-200 ${
-        task.completed ? 'bg-green-50 border-green-200' : ''
+        taskInstance.completed ? 'bg-green-50 border-green-200' : ''
       }`}>
         {/* Task Header */}
         <div className="flex items-start justify-between mb-4">
@@ -58,13 +60,13 @@ const TaskCard = ({ task, showDateRange = true }) => {
                 onClick={handleTaskToggle}
                 disabled={isUpdating}
                 className={`flex-shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
-                  task.completed
+                  taskInstance.completed
                     ? 'bg-green-500 border-green-500 text-white'
                     : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
                 } disabled:opacity-50`}
-                title={task.completed ? "Mark as incomplete" : "Mark as complete"}
+                title={taskInstance.completed ? "Mark as incomplete" : "Mark as complete"}
               >
-                {task.completed && (
+                {taskInstance.completed && (
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
@@ -86,7 +88,7 @@ const TaskCard = ({ task, showDateRange = true }) => {
               
               <div className="flex-1 min-w-0">
                 <h3 className={`text-lg md:text-xl font-bold truncate transition-all duration-200 ${
-                  task.completed ? 'text-green-700 line-through' : 'text-gray-900'
+                  taskInstance.completed ? 'text-green-700 line-through' : 'text-gray-900'
                 }`}>
                   {task.title}
                 </h3>
@@ -96,12 +98,6 @@ const TaskCard = ({ task, showDateRange = true }) => {
                     <span className="truncate">
                       {formatDate(task.startDate)} - {formatDate(task.endDate)}
                     </span>
-                  </div>
-                )}
-                {showDateRange && (!task.startDate || !task.endDate) && (
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
-                    <CheckSquare size={14} className="mr-2 flex-shrink-0" />
-                    <span className="truncate">Static task</span>
                   </div>
                 )}
               </div>
@@ -167,11 +163,14 @@ const TaskCard = ({ task, showDateRange = true }) => {
         )}
 
         {/* Subtasks - only show if expanded and there are subtasks */}
-        {isExpanded && task.subtasks && task.subtasks.length > 0 && (
+        {isExpanded && taskInstance.subtaskInstances && taskInstance.subtaskInstances.length > 0 && (
           <div className="ml-9 space-y-3">
-            {task.subtasks.map((subtask, index) => (
-              <div key={subtask._id} style={{ animationDelay: `${index * 0.1}s` }}>
-                <SubtaskItem subtask={subtask} />
+            {taskInstance.subtaskInstances.map((subtaskInstance, index) => (
+              <div key={subtaskInstance.subtaskId._id} style={{ animationDelay: `${index * 0.1}s` }}>
+                <SubtaskInstanceItem 
+                  subtaskInstance={subtaskInstance} 
+                  taskInstanceId={taskInstance._id}
+                />
               </div>
             ))}
           </div>
@@ -194,4 +193,4 @@ const TaskCard = ({ task, showDateRange = true }) => {
   );
 };
 
-export default TaskCard;
+export default TaskInstanceCard;

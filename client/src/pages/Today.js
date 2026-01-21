@@ -20,17 +20,8 @@ const Today = () => {
     });
   };
 
-  const completedTasks = todayTasks.filter(task => {
-    const totalSubtasks = task.subtasks?.length || 0;
-    const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
-    return totalSubtasks > 0 && completedSubtasks === totalSubtasks;
-  });
-
-  const incompleteTasks = todayTasks.filter(task => {
-    const totalSubtasks = task.subtasks?.length || 0;
-    const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
-    return totalSubtasks === 0 || completedSubtasks < totalSubtasks;
-  });
+  const completedTasks = todayTasks.filter(task => task.completed);
+  const incompleteTasks = todayTasks.filter(task => !task.completed);
 
   const totalSubtasks = todayTasks.reduce((acc, task) => acc + (task.subtasks?.length || 0), 0);
   const completedSubtasks = todayTasks.reduce((acc, task) => 

@@ -21,9 +21,7 @@ const AllTasks = () => {
       const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
       
       // Status filter
-      const totalSubtasks = task.subtasks?.length || 0;
-      const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
-      const isCompleted = totalSubtasks > 0 && completedSubtasks === totalSubtasks;
+      const isCompleted = task.completed;
       
       let matchesStatus = true;
       if (filterStatus === 'active') {
@@ -53,11 +51,7 @@ const AllTasks = () => {
 
   const getTaskStats = () => {
     const total = tasks.length;
-    const completed = tasks.filter(task => {
-      const totalSubtasks = task.subtasks?.length || 0;
-      const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
-      return totalSubtasks > 0 && completedSubtasks === totalSubtasks;
-    }).length;
+    const completed = tasks.filter(task => task.completed).length;
     const active = total - completed;
     
     return { total, active, completed };

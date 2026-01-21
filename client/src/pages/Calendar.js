@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useTask } from '../context/TaskContext';
-import TaskCard from '../components/TaskCard';
+import TaskInstanceCard from '../components/TaskInstanceCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 const Calendar = () => {
-  const { todayTasks, isLoading, fetchTasksForDate, selectedDate } = useTask();
+  const { taskInstances, isLoading, fetchTaskInstancesForDate, selectedDate } = useTask();
   const [currentDate, setCurrentDate] = useState(new Date(selectedDate));
 
   useEffect(() => {
     const dateString = currentDate.toISOString().split('T')[0];
-    fetchTasksForDate(dateString);
+    fetchTaskInstancesForDate(dateString);
   }, [currentDate]);
 
   const formatDate = (date) => {
@@ -39,17 +39,8 @@ const Calendar = () => {
     setCurrentDate(new Date());
   };
 
-  const completedTasks = todayTasks.filter(task => {
-    const totalSubtasks = task.subtasks?.length || 0;
-    const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
-    return totalSubtasks > 0 && completedSubtasks === totalSubtasks;
-  });
-
-  const incompleteTasks = todayTasks.filter(task => {
-    const totalSubtasks = task.subtasks?.length || 0;
-    const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
-    return totalSubtasks === 0 || completedSubtasks < totalSubtasks;
-  });
+  const completedTasks = taskInstances.filter(instance => instance.completed);
+  const incompleteTasks = taskInstances.filter(instance => !instance.completed);
 
   if (isLoading) {
     return (
@@ -65,7 +56,10 @@ const Calendar = () => {
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-4">
           <CalendarIcon className="text-primary-600" size={32} />
-          <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
+            <p className="text-gray-600">Browse date-based tasks by date</p>
+          </div>
         </div>
         
         {/* Date Navigation */}
@@ -120,7 +114,7 @@ const Calendar = () => {
         </div>
         
         {/* Stats */}
-        {todayTasks.length > 0 && (
+        {taskInstances.length > 0 && (
           <div className="mt-4 flex items-center space-x-6 text-sm">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-primary-600 rounded-full"></div>
@@ -145,8 +139,8 @@ const Calendar = () => {
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Active Tasks</h2>
             <div className="space-y-4">
-              {incompleteTasks.map((task) => (
-                <TaskCard key={task._id} task={task} showDateRange={true} />
+              {incompleteTasks.map((taskInstance) => (
+                <TaskInstanceCard key={taskInstance._id} taskInstance={taskInstance} showDateRange={true} />
               ))}
             </div>
           </div>
@@ -164,15 +158,15 @@ const Calendar = () => {
               <span>Completed Tasks</span>
             </h2>
             <div className="space-y-4 opacity-75">
-              {completedTasks.map((task) => (
-                <TaskCard key={task._id} task={task} showDateRange={true} />
+              {completedTasks.map((taskInstance) => (
+                <TaskInstanceCard key={taskInstance._id} taskInstance={taskInstance} showDateRange={true} />
               ))}
             </div>
           </div>
         )}
 
         {/* Empty State */}
-        {todayTasks.length === 0 && (
+        {taskInstances.length === 0 && (
           <div className="text-center py-12">
             <CalendarIcon className="mx-auto text-gray-300 mb-4" size={64} />
             <h3 className="text-xl font-medium text-gray-900 mb-2">

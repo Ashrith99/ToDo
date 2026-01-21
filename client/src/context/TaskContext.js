@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer } from 'react';
-import { taskAPI, subtaskAPI } from '../services/api';
+import { taskAPI, subtaskAPI, taskInstanceAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const TaskContext = createContext();
@@ -7,6 +7,8 @@ const TaskContext = createContext();
 const initialState = {
   tasks: [],
   todayTasks: [],
+  staticTasks: [], // New: for date-independent tasks
+  taskInstances: [], // New: for date-based task instances
   isLoading: false,
   selectedDate: new Date().toISOString().split('T')[0],
 };
@@ -19,36 +21,67 @@ const taskReducer = (state, action) => {
     case 'SET_TASKS':
       return { ...state, tasks: action.payload, isLoading: false };
     
+    case 'SET_TASK_INSTANCES':
+      return { ...state, taskInstances: action.payload, isLoading: false };
+    
+    case 'UPDATE_TASK_INSTANCE':
+      return {
+        ...state,
+        taskInstances: state.taskInstances.map(instance =>
+          instance._id === action.payload._id ? action.payload : instance
+        )
+      };
+    
+    case 'SET_STATIC_TASKS':
+      return { ...state, staticTasks: action.payload, isLoading: false };
+    
     case 'SET_TODAY_TASKS':
       return { ...state, todayTasks: action.payload, isLoading: false };
     
     case 'ADD_TASK':
-      return { 
-        ...state, 
-        tasks: [action.payload, ...state.tasks],
-        todayTasks: isTaskActiveToday(action.payload) 
-          ? [action.payload, ...state.todayTasks] 
-          : state.todayTasks
-      };
-    
-    case 'UPDATE_TASK':
-      const updatedTasks = state.tasks.map(task => 
-        task._id === action.payload._id ? action.payload : task
-      );
-      const updatedTodayTasks = state.todayTasks.map(task => 
-        task._id === action.payload._id ? action.payload : task
-      );
+      const newTask = action.payload;
+      const updatedTasks = [newTask, ...state.tasks];
+      
+      // Add to appropriate list based on whether it has dates
+      const hasDate = newTask.startDate && newTask.endDate;
+      const updatedTodayTasks = hasDate && isTaskActiveToday(newTask) 
+        ? [newTask, ...state.todayTasks] 
+        : state.todayTasks;
+      const updatedStaticTasks = !hasDate 
+        ? [newTask, ...state.staticTasks] 
+        : state.staticTasks;
+      
       return { 
         ...state, 
         tasks: updatedTasks,
-        todayTasks: updatedTodayTasks
+        todayTasks: updatedTodayTasks,
+        staticTasks: updatedStaticTasks
+      };
+    
+    case 'UPDATE_TASK':
+      const updatedTask = action.payload;
+      const updatedAllTasks = state.tasks.map(task => 
+        task._id === updatedTask._id ? updatedTask : task
+      );
+      const updatedTodayTasksList = state.todayTasks.map(task => 
+        task._id === updatedTask._id ? updatedTask : task
+      );
+      const updatedStaticTasksList = state.staticTasks.map(task => 
+        task._id === updatedTask._id ? updatedTask : task
+      );
+      return { 
+        ...state, 
+        tasks: updatedAllTasks,
+        todayTasks: updatedTodayTasksList,
+        staticTasks: updatedStaticTasksList
       };
     
     case 'DELETE_TASK':
       return { 
         ...state, 
         tasks: state.tasks.filter(task => task._id !== action.payload),
-        todayTasks: state.todayTasks.filter(task => task._id !== action.payload)
+        todayTasks: state.todayTasks.filter(task => task._id !== action.payload),
+        staticTasks: state.staticTasks.filter(task => task._id !== action.payload)
       };
     
     case 'ADD_SUBTASK':
@@ -64,10 +97,17 @@ const taskReducer = (state, action) => {
         }
         return task;
       });
+      const staticTaskWithNewSubtask = state.staticTasks.map(task => {
+        if (task._id === action.payload.taskId) {
+          return { ...task, subtasks: [...task.subtasks, action.payload] };
+        }
+        return task;
+      });
       return { 
         ...state, 
         tasks: taskWithNewSubtask,
-        todayTasks: todayTaskWithNewSubtask
+        todayTasks: todayTaskWithNewSubtask,
+        staticTasks: staticTaskWithNewSubtask
       };
     
     case 'UPDATE_SUBTASK':
@@ -83,10 +123,17 @@ const taskReducer = (state, action) => {
           subtask._id === action.payload._id ? action.payload : subtask
         )
       }));
+      const staticTasksWithUpdatedSubtask = state.staticTasks.map(task => ({
+        ...task,
+        subtasks: task.subtasks.map(subtask => 
+          subtask._id === action.payload._id ? action.payload : subtask
+        )
+      }));
       return { 
         ...state, 
         tasks: tasksWithUpdatedSubtask,
-        todayTasks: todayTasksWithUpdatedSubtask
+        todayTasks: todayTasksWithUpdatedSubtask,
+        staticTasks: staticTasksWithUpdatedSubtask
       };
     
     case 'DELETE_SUBTASK':
@@ -98,10 +145,15 @@ const taskReducer = (state, action) => {
         ...task,
         subtasks: task.subtasks.filter(subtask => subtask._id !== action.payload)
       }));
+      const staticTasksWithoutSubtask = state.staticTasks.map(task => ({
+        ...task,
+        subtasks: task.subtasks.filter(subtask => subtask._id !== action.payload)
+      }));
       return { 
         ...state, 
         tasks: tasksWithoutSubtask,
-        todayTasks: todayTasksWithoutSubtask
+        todayTasks: todayTasksWithoutSubtask,
+        staticTasks: staticTasksWithoutSubtask
       };
     
     case 'SET_SELECTED_DATE':
@@ -141,29 +193,71 @@ export const TaskProvider = ({ children }) => {
     }
   };
 
-  // Fetch today's tasks
-  const fetchTodayTasks = async () => {
+  // Fetch static tasks
+  const fetchStaticTasks = async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await taskAPI.getTodayTasks();
-      dispatch({ type: 'SET_TODAY_TASKS', payload: response.data.tasks });
+      const response = await taskAPI.getStaticTasks();
+      dispatch({ type: 'SET_STATIC_TASKS', payload: response.data.tasks });
+    } catch (error) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+      toast.error('Failed to fetch static tasks');
+    }
+  };
+
+  // Fetch task instances for specific date
+  const fetchTaskInstancesForDate = async (date) => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      const response = await taskInstanceAPI.getInstancesForDate(date);
+      dispatch({ type: 'SET_TASK_INSTANCES', payload: response.data.taskInstances });
+      dispatch({ type: 'SET_SELECTED_DATE', payload: date });
+    } catch (error) {
+      dispatch({ type: 'SET_LOADING', payload: false });
+      toast.error('Failed to fetch task instances for selected date');
+    }
+  };
+
+  // Toggle task instance completion
+  const toggleTaskInstanceComplete = async (instanceId) => {
+    try {
+      const response = await taskInstanceAPI.toggleTaskComplete(instanceId);
+      dispatch({ type: 'UPDATE_TASK_INSTANCE', payload: response.data.taskInstance });
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to update task';
+      toast.error(message);
+      return { success: false, message };
+    }
+  };
+
+  // Toggle subtask instance completion
+  const toggleSubtaskInstanceComplete = async (instanceId, subtaskId) => {
+    try {
+      const response = await taskInstanceAPI.toggleSubtaskComplete(instanceId, subtaskId);
+      dispatch({ type: 'UPDATE_TASK_INSTANCE', payload: response.data.taskInstance });
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to update subtask';
+      toast.error(message);
+      return { success: false, message };
+    }
+  };
+
+  // Fetch today's tasks (using task instances)
+  const fetchTodayTasks = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await fetchTaskInstancesForDate(today);
     } catch (error) {
       dispatch({ type: 'SET_LOADING', payload: false });
       toast.error('Failed to fetch today\'s tasks');
     }
   };
 
-  // Fetch tasks for specific date
+  // Fetch tasks for specific date (using task instances)
   const fetchTasksForDate = async (date) => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await taskAPI.getTasksForDate(date);
-      dispatch({ type: 'SET_TODAY_TASKS', payload: response.data.tasks });
-      dispatch({ type: 'SET_SELECTED_DATE', payload: date });
-    } catch (error) {
-      dispatch({ type: 'SET_LOADING', payload: false });
-      toast.error('Failed to fetch tasks for selected date');
-    }
+    await fetchTaskInstancesForDate(date);
   };
 
   // Create task
@@ -253,7 +347,11 @@ export const TaskProvider = ({ children }) => {
     ...state,
     fetchTasks,
     fetchTodayTasks,
+    fetchStaticTasks,
     fetchTasksForDate,
+    fetchTaskInstancesForDate,
+    toggleTaskInstanceComplete,
+    toggleSubtaskInstanceComplete,
     createTask,
     updateTask,
     deleteTask,

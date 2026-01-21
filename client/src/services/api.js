@@ -46,6 +46,7 @@ export const authAPI = {
 export const taskAPI = {
   getAllTasks: () => api.get('/tasks'),
   getTodayTasks: () => api.get('/tasks/today'),
+  getStaticTasks: () => api.get('/tasks/static'),
   getTasksForDate: (date) => api.get(`/tasks/date/${date}`),
   createTask: (taskData) => api.post('/tasks', taskData),
   updateTask: (taskId, updates) => api.put(`/tasks/${taskId}`, updates),
@@ -58,6 +59,13 @@ export const subtaskAPI = {
   updateSubtask: (subtaskId, updates) => api.put(`/subtasks/${subtaskId}`, updates),
   deleteSubtask: (subtaskId) => api.delete(`/subtasks/${subtaskId}`),
   getSubtasksForTask: (taskId) => api.get(`/subtasks/task/${taskId}`),
+};
+
+// Task Instance API
+export const taskInstanceAPI = {
+  getInstancesForDate: (date) => api.get(`/task-instances/date/${date}`),
+  toggleTaskComplete: (instanceId) => api.put(`/task-instances/${instanceId}/complete`),
+  toggleSubtaskComplete: (instanceId, subtaskId) => api.put(`/task-instances/${instanceId}/subtask/${subtaskId}`),
 };
 
 export default api;
