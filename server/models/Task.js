@@ -7,17 +7,26 @@ const taskSchema = new mongoose.Schema({
     trim: true,
     maxlength: [200, 'Task title cannot exceed 200 characters']
   },
+  completed: {
+    type: Boolean,
+    default: false
+  },
   startDate: {
     type: Date,
-    required: [true, 'Start date is required'],
-    default: Date.now
+    required: false, // Made optional for static tasks
+    default: null
   },
   endDate: {
     type: Date,
-    required: [true, 'End date is required'],
+    required: false, // Made optional for static tasks
+    default: null,
     validate: {
       validator: function(value) {
-        return value >= this.startDate;
+        // Only validate if both dates are provided
+        if (this.startDate && value) {
+          return value >= this.startDate;
+        }
+        return true;
       },
       message: 'End date must be after or equal to start date'
     }
@@ -40,6 +49,11 @@ taskSchema.index({ userId: 1, startDate: 1, endDate: 1 });
 
 // Virtual to check if task is active for a given date
 taskSchema.methods.isActiveOnDate = function(date) {
+  // If no dates are set, it's a static task (not date-based)
+  if (!this.startDate || !this.endDate) {
+    return false;
+  }
+  
   const checkDate = new Date(date);
   checkDate.setHours(0, 0, 0, 0);
   
@@ -62,8 +76,8 @@ taskSchema.statics.findTasksForDate = function(userId, date) {
   
   return this.find({
     userId,
-    startDate: { $lte: endOfDay },
-    endDate: { $gte: startOfDay }
+    startDate: { $lte: endOfDay, $ne: null },
+    endDate: { $gte: startOfDay, $ne: null }
   }).populate('subtasks').sort({ createdAt: -1 }); // Sort by newest first
 };
 

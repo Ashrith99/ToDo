@@ -22,6 +22,29 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/tasks/static
+// @desc    Get static tasks (tasks without dates)
+// @access  Private
+router.get('/static', auth, async (req, res) => {
+  try {
+    const tasks = await Task.find({ 
+      userId: req.user._id,
+      $or: [
+        { startDate: null },
+        { endDate: null },
+        { $and: [{ startDate: { $exists: false } }, { endDate: { $exists: false } }] }
+      ]
+    })
+      .populate('subtasks')
+      .sort({ createdAt: -1 });
+    
+    res.json({ tasks });
+  } catch (error) {
+    console.error('Get static tasks error:', error);
+    res.status(500).json({ message: 'Server error while fetching static tasks' });
+  }
+});
+
 // @route   GET /api/tasks/today
 // @desc    Get today's tasks
 // @access  Private
@@ -69,8 +92,8 @@ router.get('/date/:date', auth, async (req, res) => {
 router.post('/', [
   auth,
   body('title').trim().isLength({ min: 1, max: 200 }).withMessage('Title must be 1-200 characters'),
-  body('startDate').isISO8601().withMessage('Start date must be a valid date'),
-  body('endDate').isISO8601().withMessage('End date must be a valid date')
+  body('startDate').optional().isISO8601().withMessage('Start date must be a valid date'),
+  body('endDate').optional().isISO8601().withMessage('End date must be a valid date')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -80,21 +103,33 @@ router.post('/', [
 
     const { title, startDate, endDate } = req.body;
     
-    // Validate date range
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    if (end < start) {
-      return res.status(400).json({ message: 'End date must be after or equal to start date' });
+    // Validate date range if both dates are provided
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (end < start) {
+        return res.status(400).json({ message: 'End date must be after or equal to start date' });
+      }
     }
 
-    const task = new Task({
-      title,
-      startDate: start,
-      endDate: end,
-      userId: req.user._id
-    });
+    // Validate that if one date is provided, both should be provided
+    if ((startDate && !endDate) || (!startDate && endDate)) {
+      return res.status(400).json({ message: 'Both start date and end date must be provided together, or leave both empty for static tasks' });
+    }
 
+    const taskData = {
+      title,
+      userId: req.user._id
+    };
+
+    // Only add dates if both are provided
+    if (startDate && endDate) {
+      taskData.startDate = new Date(startDate);
+      taskData.endDate = new Date(endDate);
+    }
+
+    const task = new Task(taskData);
     await task.save();
     await task.populate('subtasks');
 
@@ -111,6 +146,7 @@ router.post('/', [
 router.put('/:id', [
   auth,
   body('title').optional().trim().isLength({ min: 1, max: 200 }).withMessage('Title must be 1-200 characters'),
+  body('completed').optional().isBoolean().withMessage('Completed must be a boolean'),
   body('startDate').optional().isISO8601().withMessage('Start date must be a valid date'),
   body('endDate').optional().isISO8601().withMessage('End date must be a valid date')
 ], async (req, res) => {

@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 const subtaskRoutes = require('./routes/subtasks');
+const taskInstanceRoutes = require('./routes/taskInstances');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/subtasks', subtaskRoutes);
+app.use('/api/task-instances', taskInstanceRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
