@@ -38,6 +38,27 @@ router.put('/:id', [
     Object.assign(subtask, updates);
     await subtask.save();
 
+    // If subtask completion status changed, check if we need to update parent task
+    if (updates.hasOwnProperty('completed')) {
+      const task = await Task.findById(subtask.taskId._id).populate('subtasks');
+      
+      if (task.subtasks.length > 0) {
+        const allSubtasksCompleted = task.subtasks.every(st => st._id.toString() === id ? updates.completed : st.completed);
+        const anySubtaskIncomplete = task.subtasks.some(st => st._id.toString() === id ? !updates.completed : !st.completed);
+        
+        // Auto-complete task if all subtasks are completed
+        if (allSubtasksCompleted) {
+          task.completed = true;
+          await task.save();
+        }
+        // Auto-incomplete task if any subtask is incomplete and task was previously completed
+        else if (anySubtaskIncomplete && task.completed) {
+          task.completed = false;
+          await task.save();
+        }
+      }
+    }
+
     res.json({ message: 'Subtask updated successfully', subtask });
   } catch (error) {
     console.error('Update subtask error:', error);

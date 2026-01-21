@@ -99,6 +99,13 @@ router.put('/:id/complete', auth, async (req, res) => {
     }
 
     instance.completed = !instance.completed;
+    
+    // If task is being marked as complete, mark all subtasks as complete
+    // If task is being marked as incomplete, mark all subtasks as incomplete
+    instance.subtaskInstances.forEach(subtaskInstance => {
+      subtaskInstance.completed = instance.completed;
+    });
+
     await instance.save();
 
     // Populate for response
@@ -135,6 +142,20 @@ router.put('/:id/subtask/:subtaskId', auth, async (req, res) => {
     }
 
     subtaskInstance.completed = !subtaskInstance.completed;
+    
+    // Check if all subtasks are completed to auto-complete the main task
+    const allSubtasksCompleted = instance.subtaskInstances.every(si => si.completed);
+    const anySubtaskIncomplete = instance.subtaskInstances.some(si => !si.completed);
+    
+    // Auto-complete task if all subtasks are completed
+    if (allSubtasksCompleted && instance.subtaskInstances.length > 0) {
+      instance.completed = true;
+    }
+    // Auto-incomplete task if any subtask is incomplete and task was previously completed
+    else if (anySubtaskIncomplete && instance.completed) {
+      instance.completed = false;
+    }
+
     await instance.save();
 
     // Populate for response

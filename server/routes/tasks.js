@@ -174,6 +174,14 @@ router.put('/:id', [
       }
     }
 
+    // If task completion is being toggled, update all subtasks accordingly
+    if (updates.hasOwnProperty('completed')) {
+      await Subtask.updateMany(
+        { taskId: id },
+        { completed: updates.completed }
+      );
+    }
+
     Object.assign(task, updates);
     await task.save();
     await task.populate('subtasks');
