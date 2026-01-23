@@ -158,25 +158,6 @@ const Login = () => {
               </button>
             </div>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500 font-medium">Demo Account</span>
-              </div>
-            </div>
-            <div className="mt-4 glass-card p-4 text-center">
-              <p className="text-sm font-semibold text-gray-700 mb-2">Try the demo:</p>
-              <div className="space-y-1 text-sm text-gray-600">
-                <p><span className="font-medium">Email:</span> demo@example.com</p>
-                <p><span className="font-medium">Password:</span> demo123</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
