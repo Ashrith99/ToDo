@@ -108,6 +108,10 @@ router.post('/', [
       const start = new Date(startDate);
       const end = new Date(endDate);
       
+      // Normalize dates to start of day for proper comparison
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      
       if (end < start) {
         return res.status(400).json({ message: 'End date must be after or equal to start date' });
       }
@@ -169,7 +173,11 @@ router.put('/:id', [
       const startDate = updates.startDate ? new Date(updates.startDate) : task.startDate;
       const endDate = updates.endDate ? new Date(updates.endDate) : task.endDate;
       
-      if (endDate < startDate) {
+      // Normalize dates to start of day for proper comparison
+      if (startDate) startDate.setHours(0, 0, 0, 0);
+      if (endDate) endDate.setHours(0, 0, 0, 0);
+      
+      if (endDate && startDate && endDate < startDate) {
         return res.status(400).json({ message: 'End date must be after or equal to start date' });
       }
     }

@@ -9,7 +9,16 @@ const router = express.Router();
 
 // Helper function to get or create task instance for a specific date
 const getOrCreateTaskInstance = async (taskId, userId, date) => {
-  const targetDate = new Date(date);
+  // Handle both string and Date object inputs
+  let targetDate;
+  if (typeof date === 'string') {
+    // Parse the date string and create a proper date object in local timezone
+    const [year, month, day] = date.split('-').map(Number);
+    targetDate = new Date(year, month - 1, day);
+  } else {
+    // If it's already a Date object, use it directly
+    targetDate = new Date(date);
+  }
   targetDate.setHours(0, 0, 0, 0);
 
   let instance = await TaskInstance.findOne({
@@ -57,7 +66,10 @@ router.get('/date/:date', auth, async (req, res) => {
       return res.status(400).json({ message: 'Invalid date format. Use YYYY-MM-DD' });
     }
     
-    const targetDate = new Date(date);
+    // Parse date components to avoid timezone issues
+    const [year, month, day] = date.split('-').map(Number);
+    const targetDate = new Date(year, month - 1, day);
+    
     if (isNaN(targetDate.getTime())) {
       return res.status(400).json({ message: 'Invalid date' });
     }

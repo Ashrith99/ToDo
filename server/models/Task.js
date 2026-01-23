@@ -68,10 +68,19 @@ taskSchema.methods.isActiveOnDate = function(date) {
 
 // Static method to find tasks for a specific date
 taskSchema.statics.findTasksForDate = function(userId, date) {
-  const startOfDay = new Date(date);
+  // Parse date string to avoid timezone issues
+  let targetDate;
+  if (typeof date === 'string') {
+    const [year, month, day] = date.split('-').map(Number);
+    targetDate = new Date(year, month - 1, day);
+  } else {
+    targetDate = new Date(date);
+  }
+  
+  const startOfDay = new Date(targetDate);
   startOfDay.setHours(0, 0, 0, 0);
   
-  const endOfDay = new Date(date);
+  const endOfDay = new Date(targetDate);
   endOfDay.setHours(23, 59, 59, 999);
   
   return this.find({
