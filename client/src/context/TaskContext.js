@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer } from 'react';
 import { taskAPI, subtaskAPI, taskInstanceAPI } from '../services/api';
+import { getTodayString } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 const TaskContext = createContext();
@@ -10,7 +11,7 @@ const initialState = {
   staticTasks: [], // New: for date-independent tasks
   taskInstances: [], // New: for date-based task instances
   isLoading: false,
-  selectedDate: new Date().toISOString().split('T')[0],
+  selectedDate: getTodayString(), // Use local date
 };
 
 const taskReducer = (state, action) => {
@@ -247,7 +248,7 @@ export const TaskProvider = ({ children }) => {
   // Fetch today's tasks (using task instances)
   const fetchTodayTasks = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayString();
       await fetchTaskInstancesForDate(today);
     } catch (error) {
       dispatch({ type: 'SET_LOADING', payload: false });

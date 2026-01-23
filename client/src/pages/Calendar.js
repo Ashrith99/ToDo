@@ -4,29 +4,21 @@ import TaskInstanceCard from '../components/TaskInstanceCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import DatePicker from 'react-datepicker';
+import { getLocalDateString, getTodayString, isToday, formatDate } from '../utils/dateUtils';
 import 'react-datepicker/dist/react-datepicker.css';
 
 const Calendar = () => {
   const { taskInstances, isLoading, fetchTaskInstancesForDate, selectedDate } = useTask();
-  const [currentDate, setCurrentDate] = useState(new Date(selectedDate));
+  // Initialize with today's date, not selectedDate from context
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
-    const dateString = currentDate.toISOString().split('T')[0];
+    const dateString = getLocalDateString(currentDate);
     fetchTaskInstancesForDate(dateString);
   }, [currentDate]);
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const isToday = (date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
+  const formatDateDisplay = (date) => {
+    return formatDate(date);
   };
 
   const navigateDate = (direction) => {
@@ -75,7 +67,7 @@ const Calendar = () => {
             
             <div className="text-center">
               <h2 className="text-xl font-semibold text-gray-900">
-                {formatDate(currentDate)}
+                {formatDateDisplay(currentDate)}
               </h2>
               {isToday(currentDate) && (
                 <span className="text-sm text-primary-600 font-medium">Today</span>
@@ -175,7 +167,7 @@ const Calendar = () => {
             <p className="text-gray-500 mb-6">
               {isToday(currentDate) 
                 ? "You don't have any tasks scheduled for today."
-                : `No tasks are scheduled for ${formatDate(currentDate)}.`
+                : `No tasks are scheduled for ${formatDateDisplay(currentDate)}.`
               }
             </p>
             <a

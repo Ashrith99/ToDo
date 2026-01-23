@@ -62,8 +62,16 @@ const CreateTask = () => {
 
       if (!formData.endDate) {
         newErrors.endDate = 'End date is required for date-based tasks';
-      } else if (formData.startDate && formData.endDate < formData.startDate) {
-        newErrors.endDate = 'End date must be after or equal to start date';
+      } else if (formData.startDate && formData.endDate) {
+        // Normalize dates to start of day for proper comparison
+        const startDate = new Date(formData.startDate);
+        const endDate = new Date(formData.endDate);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+        
+        if (endDate < startDate) {
+          newErrors.endDate = 'End date must be after or equal to start date';
+        }
       }
     }
 

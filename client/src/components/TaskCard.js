@@ -5,6 +5,7 @@ import SubtaskItem from './SubtaskItem';
 import SubtaskForm from './SubtaskForm';
 import ConfirmModal from './ConfirmModal';
 import { useConfirm } from '../hooks/useConfirm';
+import { formatDateShort } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 const TaskCard = ({ task, showDateRange = true }) => {
@@ -13,14 +14,6 @@ const TaskCard = ({ task, showDateRange = true }) => {
   const [showSubtaskForm, setShowSubtaskForm] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const { confirmState, showConfirm, hideConfirm, handleConfirm } = useConfirm();
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
 
   const handleTaskToggle = async () => {
     setIsUpdating(true);
@@ -104,14 +97,23 @@ const TaskCard = ({ task, showDateRange = true }) => {
                 }`}>
                   {task.title}
                 </h3>
-                {showDateRange && task.startDate && task.endDate && (
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
-                    <Calendar size={14} className="mr-2 flex-shrink-0" />
-                    <span className="truncate">
-                      {formatDate(task.startDate)} - {formatDate(task.endDate)}
-                    </span>
-                  </div>
-                )}
+                {showDateRange && task.startDate && task.endDate && (() => {
+                  const startDateFormatted = formatDateShort(task.startDate);
+                  const endDateFormatted = formatDateShort(task.endDate);
+                  
+                  // Only show date range if both dates are valid and formatted successfully
+                  if (startDateFormatted && endDateFormatted) {
+                    return (
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <Calendar size={14} className="mr-2 flex-shrink-0" />
+                        <span className="truncate">
+                          {startDateFormatted} - {endDateFormatted}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 {showDateRange && (!task.startDate || !task.endDate) && (
                   <div className="flex items-center text-sm text-gray-500 mt-1">
                     <CheckSquare size={14} className="mr-2 flex-shrink-0" />

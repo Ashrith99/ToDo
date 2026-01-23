@@ -5,6 +5,7 @@ import SubtaskInstanceItem from './SubtaskInstanceItem';
 import SubtaskForm from './SubtaskForm';
 import ConfirmModal from './ConfirmModal';
 import { useConfirm } from '../hooks/useConfirm';
+import { formatDateShort } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
@@ -15,14 +16,6 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
   const { confirmState, showConfirm, hideConfirm, handleConfirm } = useConfirm();
 
   const task = taskInstance.taskId;
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
 
   const handleTaskToggle = async () => {
     setIsUpdating(true);
@@ -35,9 +28,7 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
       toast.success(`Task completed! All ${totalSubtasks} subtasks were automatically marked as done.`);
     } else if (result.success && wasCompleted && totalSubtasks > 0) {
       // Task was marked incomplete, which auto-incompleted all subtasks
-      toast(`Task marked incomplete. All subtasks were automatically unchecked.`, {
-        icon: 'ℹ️',
-      });
+      toast.success(`Task marked incomplete. All subtasks were automatically unchecked.`);
     }
     
     setIsUpdating(false);
@@ -106,14 +97,23 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
                 }`}>
                   {task.title}
                 </h3>
-                {showDateRange && task.startDate && task.endDate && (
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
-                    <Calendar size={14} className="mr-2 flex-shrink-0" />
-                    <span className="truncate">
-                      {formatDate(task.startDate)} - {formatDate(task.endDate)}
-                    </span>
-                  </div>
-                )}
+                {showDateRange && task.startDate && task.endDate && (() => {
+                  const startDateFormatted = formatDateShort(task.startDate);
+                  const endDateFormatted = formatDateShort(task.endDate);
+                  
+                  // Only show date range if both dates are valid and formatted successfully
+                  if (startDateFormatted && endDateFormatted) {
+                    return (
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <Calendar size={14} className="mr-2 flex-shrink-0" />
+                        <span className="truncate">
+                          {startDateFormatted} - {endDateFormatted}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             </div>
             
