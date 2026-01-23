@@ -6,9 +6,21 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
-// Generate JWT token
+// Generate JWT token with enhanced security
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(
+    { 
+      userId,
+      iat: Math.floor(Date.now() / 1000), // Issued at time
+      type: 'access' // Token type
+    }, 
+    process.env.JWT_SECRET, 
+    { 
+      expiresIn: '7d', // 7 days expiration
+      issuer: 'todo-app', // Token issuer
+      audience: 'todo-users' // Token audience
+    }
+  );
 };
 
 // @route   POST /api/auth/register
