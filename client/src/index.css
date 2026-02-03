@@ -200,3 +200,136 @@
 .shadow-premium-lg {
   box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
+  /* Calendar specific styles */
+  .calendar-day {
+    @apply relative transition-all duration-200 hover:scale-105;
+  }
+  
+  .calendar-day-today {
+    @apply bg-gradient-to-br from-blue-100 to-blue-200 text-blue-800 font-bold ring-2 ring-blue-300 shadow-md;
+  }
+  
+  .calendar-day-selected {
+    @apply bg-gradient-to-br from-primary-600 to-primary-700 text-white font-bold shadow-lg transform scale-105;
+  }
+  
+  .calendar-day-other-month {
+    @apply text-gray-300 hover:text-gray-400;
+  }
+  
+  .calendar-day-current-month {
+    @apply text-gray-900 hover:bg-blue-50 hover:text-blue-700;
+  }
+  
+  .task-indicator {
+    @apply absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full opacity-60;
+  }
+  
+  .calendar-grid {
+    @apply grid grid-cols-7 gap-1 bg-gray-50 p-2 rounded-lg;
+  }
+  
+  .calendar-header {
+    @apply h-10 flex items-center justify-center text-sm font-semibold text-gray-600 bg-gray-100 border-b border-gray-200;
+  }
+  
+  /* Task section scrollbar */
+  .tasks-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f8fafc;
+  }
+  
+  .tasks-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .tasks-scroll::-webkit-scrollbar-track {
+    @apply bg-gray-50 rounded-full;
+  }
+  
+  .tasks-scroll::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full hover:bg-gray-400;
+    border: 2px solid #f8fafc;
+  }
+  
+  .tasks-scroll::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  }
+  
+  /* Task card hover effects */
+  .task-card-hover {
+    @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+  }
+  
+  /* Modal backdrop */
+  .modal-backdrop {
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  /* Modal slide in */
+  .modal-content {
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  @keyframes slideIn {
+    from { 
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  /* Compact task card styles */
+  .task-title-compact {
+    line-height: 1.3;
+    word-break: break-word;
+    hyphens: auto;
+  }
+  
+  .task-card-compact {
+    @apply shadow-sm hover:shadow-md;
+  }
+  
+  .task-card-compact .floating-card {
+    @apply border border-gray-100;
+  }
+  
+  /* Better text wrapping for long task names */
+  .task-title-wrap {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+  /* Compact task cards for better space utilization */
+  .floating-card-compact {
+    @apply bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200;
+    padding: 0.75rem 1rem;
+  }
+  
+  .task-list-compact {
+    gap: 0.75rem;
+  }
+  
+  .task-list-compact .floating-card {
+    @apply shadow-sm border-gray-100;
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Reduce margins in task content */
+  .task-content-compact .task-header {
+    margin-bottom: 0.5rem;
+  }
+  
+  .task-content-compact .task-progress {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }

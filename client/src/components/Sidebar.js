@@ -99,7 +99,7 @@ const Sidebar = ({ onClose }) => {
       <div className="flex-shrink-0 p-4 border-t border-white/20">
         <div className="text-center">
           <div className="text-xs text-gray-500">
-            Built with ❤️ using React & Node.js
+            Built with ❤️ AfterLife
           </div>
           <div className="text-xs text-gray-400 mt-1">
             Version 2.0 Premium

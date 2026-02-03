@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target, Clock, CheckSquare } from 'lucide-react';
+import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target } from 'lucide-react';
 import { useTask } from '../context/TaskContext';
 import SubtaskInstanceItem from './SubtaskInstanceItem';
 import SubtaskForm from './SubtaskForm';
@@ -8,7 +8,7 @@ import { useConfirm } from '../hooks/useConfirm';
 import { formatDateShort } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
-const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
+const TaskInstanceCard = ({ taskInstance, showDateRange = true, compact = false }) => {
   const { deleteTask, toggleTaskInstanceComplete } = useTask();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showSubtaskForm, setShowSubtaskForm] = useState(false);
@@ -53,7 +53,9 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
 
   return (
     <>
-      <div className={`floating-card p-4 md:p-6 animate-slide-up transition-all duration-200 ${
+      <div className={`floating-card transition-all duration-200 ${
+        compact ? 'p-3 md:p-4 task-card-compact' : 'p-4 md:p-6'
+      } animate-slide-up ${
         taskInstance.completed ? 'bg-green-50 border-green-200' : ''
       }`}>
         {/* Task Header */}
@@ -92,7 +94,9 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
               )}
               
               <div className="flex-1 min-w-0">
-                <h3 className={`text-lg md:text-xl font-bold truncate transition-all duration-200 ${
+                <h3 className={`${
+                  compact ? 'text-sm font-semibold task-title-compact task-title-wrap' : 'text-lg md:text-xl font-bold truncate'
+                } transition-all duration-200 ${
                   taskInstance.completed ? 'text-green-700 line-through' : 'text-gray-900'
                 }`}>
                   {task.title}
@@ -119,10 +123,10 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
             
             {/* Progress Section - only show if there are subtasks */}
             {totalSubtasks > 0 && (
-              <div className="ml-9 space-y-3">
-                <div className="flex items-center justify-between text-sm">
+              <div className={`${compact ? 'ml-7' : 'ml-9'} space-y-${compact ? '2' : '3'}`}>
+                <div className={`flex items-center justify-between ${compact ? 'text-xs' : 'text-sm'}`}>
                   <div className="flex items-center space-x-2">
-                    <Target size={14} className="text-blue-500" />
+                    <Target size={compact ? 12 : 14} className="text-blue-500" />
                     <span className="text-gray-600 font-medium">
                       {completedSubtasks} of {totalSubtasks} subtasks completed
                     </span>
@@ -132,14 +136,14 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
                 
                 {/* Progress Bar */}
                 <div className="relative">
-                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className={`w-full bg-gray-200 rounded-full ${compact ? 'h-2' : 'h-3'} overflow-hidden`}>
                     <div
-                      className="bg-gradient-to-r from-blue-500 to-indigo-500 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
+                      className={`bg-gradient-to-r from-blue-500 to-indigo-500 ${compact ? 'h-2' : 'h-3'} rounded-full transition-all duration-500 ease-out shadow-sm`}
                       style={{ width: `${progressPercentage}%` }}
                     ></div>
                   </div>
                   {progressPercentage === 100 && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse"></div>
+                    <div className={`absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse`}></div>
                   )}
                 </div>
               </div>
@@ -150,24 +154,28 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
           <div className="flex items-center space-x-2 ml-4">
             <button
               onClick={() => setShowSubtaskForm(!showSubtaskForm)}
-              className="p-2 md:p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+              className={`${
+                compact ? 'p-1.5' : 'p-2 md:p-3'
+              } text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group`}
               title="Add subtask"
             >
-              <Plus size={16} className="group-hover:scale-110 transition-transform" />
+              <Plus size={compact ? 14 : 16} className="group-hover:scale-110 transition-transform" />
             </button>
             <button
               onClick={handleDelete}
-              className="p-2 md:p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group"
+              className={`${
+                compact ? 'p-1.5' : 'p-2 md:p-3'
+              } text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group`}
               title="Delete task"
             >
-              <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+              <Trash2 size={compact ? 14 : 16} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
         </div>
 
         {/* Subtask Form */}
         {showSubtaskForm && (
-          <div className="mb-6 ml-9 animate-slide-up">
+          <div className={`${compact ? 'mb-4 ml-7' : 'mb-6 ml-9'} animate-slide-up`}>
             <SubtaskForm
               taskId={task._id}
               onSuccess={() => setShowSubtaskForm(false)}
@@ -178,7 +186,7 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true }) => {
 
         {/* Subtasks - only show if expanded and there are subtasks */}
         {isExpanded && taskInstance.subtaskInstances && taskInstance.subtaskInstances.length > 0 && (
-          <div className="ml-9 space-y-3">
+          <div className={`${compact ? 'ml-7 space-y-2' : 'ml-9 space-y-3'}`}>
             {taskInstance.subtaskInstances.map((subtaskInstance, index) => (
               <div key={subtaskInstance.subtaskId._id} style={{ animationDelay: `${index * 0.1}s` }}>
                 <SubtaskInstanceItem 

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import { taskAPI, subtaskAPI, taskInstanceAPI } from '../services/api';
-import { getTodayString } from '../utils/dateUtils';
+import { getTodayString, getLocalDateString } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 const TaskContext = createContext();
@@ -207,17 +207,22 @@ export const TaskProvider = ({ children }) => {
   };
 
   // Fetch task instances for specific date
-  const fetchTaskInstancesForDate = async (date) => {
+  const fetchTaskInstancesForDate = useCallback(async (date) => {
     try {
+      console.log('TaskContext: Fetching task instances for date:', date);
       dispatch({ type: 'SET_LOADING', payload: true });
       const response = await taskInstanceAPI.getInstancesForDate(date);
+      console.log('TaskContext: Successfully fetched task instances:', response.data);
       dispatch({ type: 'SET_TASK_INSTANCES', payload: response.data.taskInstances });
       dispatch({ type: 'SET_SELECTED_DATE', payload: date });
     } catch (error) {
+      console.error('TaskContext: Error fetching task instances:', error);
+      console.error('TaskContext: Error response:', error.response?.data);
+      console.error('TaskContext: Error status:', error.response?.status);
       dispatch({ type: 'SET_LOADING', payload: false });
       toast.error('Failed to fetch task instances for selected date');
     }
-  };
+  }, []);
 
   // Toggle task instance completion
   const toggleTaskInstanceComplete = async (instanceId) => {
@@ -262,10 +267,25 @@ export const TaskProvider = ({ children }) => {
   };
 
   // Create task
-  const createTask = async (taskData) => {
+  const createTask = useCallback(async (taskData) => {
     try {
       const response = await taskAPI.createTask(taskData);
       dispatch({ type: 'ADD_TASK', payload: response.data.task });
+      
+      // If the task has dates, refresh the current selected date's task instances
+      if (taskData.startDate && taskData.endDate) {
+        const taskDate = getLocalDateString(new Date(taskData.startDate));
+        const currentSelectedDate = state.selectedDate;
+        
+        // Only refresh if the new task's date matches the currently selected date
+        if (taskDate === currentSelectedDate) {
+          // Refresh task instances for the current date
+          setTimeout(() => {
+            fetchTaskInstancesForDate(currentSelectedDate);
+          }, 100);
+        }
+      }
+      
       toast.success('Task created successfully');
       return { success: true, task: response.data.task };
     } catch (error) {
@@ -273,7 +293,7 @@ export const TaskProvider = ({ children }) => {
       toast.error(message);
       return { success: false, message };
     }
-  };
+  }, [state.selectedDate, fetchTaskInstancesForDate]);
 
   // Update task
   const updateTask = async (taskId, updates) => {

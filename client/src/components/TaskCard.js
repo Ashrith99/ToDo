@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target, Clock, CheckSquare } from 'lucide-react';
+import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target, CheckSquare } from 'lucide-react';
 import { useTask } from '../context/TaskContext';
 import SubtaskItem from './SubtaskItem';
 import SubtaskForm from './SubtaskForm';
@@ -53,18 +53,18 @@ const TaskCard = ({ task, showDateRange = true }) => {
 
   return (
     <>
-      <div className={`floating-card p-4 md:p-6 animate-slide-up transition-all duration-200 ${
+      <div className={`floating-card p-3 md:p-4 animate-slide-up transition-all duration-200 ${
         task.completed ? 'bg-green-50 border-green-200' : ''
       }`}>
         {/* Task Header */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-3 mb-3">
+            <div className="flex items-center space-x-3 mb-2">
               {/* Task Completion Checkbox */}
               <button
                 onClick={handleTaskToggle}
                 disabled={isUpdating}
-                className={`flex-shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
+                className={`flex-shrink-0 w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
                   task.completed
                     ? 'bg-green-500 border-green-500 text-white'
                     : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
@@ -72,7 +72,7 @@ const TaskCard = ({ task, showDateRange = true }) => {
                 title={task.completed ? "Mark as incomplete" : "Mark as complete"}
               >
                 {task.completed && (
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 )}
@@ -82,17 +82,17 @@ const TaskCard = ({ task, showDateRange = true }) => {
               {totalSubtasks > 0 && (
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
-                  className="flex-shrink-0 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+                  className="flex-shrink-0 p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
                 >
                   {isExpanded ? 
-                    <ChevronDown size={18} className="group-hover:scale-110 transition-transform" /> : 
-                    <ChevronRight size={18} className="group-hover:scale-110 transition-transform" />
+                    <ChevronDown size={16} className="group-hover:scale-110 transition-transform" /> : 
+                    <ChevronRight size={16} className="group-hover:scale-110 transition-transform" />
                   }
                 </button>
               )}
               
               <div className="flex-1 min-w-0">
-                <h3 className={`text-lg md:text-xl font-bold truncate transition-all duration-200 ${
+                <h3 className={`text-base md:text-lg font-semibold break-words transition-all duration-200 ${
                   task.completed ? 'text-green-700 line-through' : 'text-gray-900'
                 }`}>
                   {task.title}
@@ -104,8 +104,8 @@ const TaskCard = ({ task, showDateRange = true }) => {
                   // Only show date range if both dates are valid and formatted successfully
                   if (startDateFormatted && endDateFormatted) {
                     return (
-                      <div className="flex items-center text-sm text-gray-500 mt-1">
-                        <Calendar size={14} className="mr-2 flex-shrink-0" />
+                      <div className="flex items-center text-xs text-gray-500 mt-1">
+                        <Calendar size={12} className="mr-1.5 flex-shrink-0" />
                         <span className="truncate">
                           {startDateFormatted} - {endDateFormatted}
                         </span>
@@ -115,8 +115,8 @@ const TaskCard = ({ task, showDateRange = true }) => {
                   return null;
                 })()}
                 {showDateRange && (!task.startDate || !task.endDate) && (
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
-                    <CheckSquare size={14} className="mr-2 flex-shrink-0" />
+                  <div className="flex items-center text-xs text-gray-500 mt-1">
+                    <CheckSquare size={12} className="mr-1.5 flex-shrink-0" />
                     <span className="truncate">Static task</span>
                   </div>
                 )}
@@ -125,22 +125,22 @@ const TaskCard = ({ task, showDateRange = true }) => {
             
             {/* Progress Section - only show if there are subtasks */}
             {totalSubtasks > 0 && (
-              <div className="ml-9 space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Target size={14} className="text-blue-500" />
+              <div className="ml-8 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-1.5">
+                    <Target size={12} className="text-blue-500" />
                     <span className="text-gray-600 font-medium">
                       {completedSubtasks} of {totalSubtasks} subtasks completed
                     </span>
                   </div>
-                  <span className="text-blue-600 font-bold">{Math.round(progressPercentage)}%</span>
+                  <span className="text-blue-600 font-bold text-xs">{Math.round(progressPercentage)}%</span>
                 </div>
                 
                 {/* Progress Bar */}
                 <div className="relative">
-                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div
-                      className="bg-gradient-to-r from-blue-500 to-indigo-500 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
+                      className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500 ease-out shadow-sm"
                       style={{ width: `${progressPercentage}%` }}
                     ></div>
                   </div>
@@ -153,27 +153,27 @@ const TaskCard = ({ task, showDateRange = true }) => {
           </div>
           
           {/* Action Buttons */}
-          <div className="flex items-center space-x-2 ml-4">
+          <div className="flex items-center space-x-1 ml-3">
             <button
               onClick={() => setShowSubtaskForm(!showSubtaskForm)}
-              className="p-2 md:p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
               title="Add subtask"
             >
-              <Plus size={16} className="group-hover:scale-110 transition-transform" />
+              <Plus size={14} className="group-hover:scale-110 transition-transform" />
             </button>
             <button
               onClick={handleDelete}
-              className="p-2 md:p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group"
+              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
               title="Delete task"
             >
-              <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+              <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
         </div>
 
         {/* Subtask Form */}
         {showSubtaskForm && (
-          <div className="mb-6 ml-9 animate-slide-up">
+          <div className="mb-3 ml-8 animate-slide-up">
             <SubtaskForm
               taskId={task._id}
               onSuccess={() => setShowSubtaskForm(false)}
@@ -184,7 +184,7 @@ const TaskCard = ({ task, showDateRange = true }) => {
 
         {/* Subtasks - only show if expanded and there are subtasks */}
         {isExpanded && task.subtasks && task.subtasks.length > 0 && (
-          <div className="ml-9 space-y-3">
+          <div className="ml-8 space-y-2">
             {task.subtasks.map((subtask, index) => (
               <div key={subtask._id} style={{ animationDelay: `${index * 0.1}s` }}>
                 <SubtaskItem subtask={subtask} />

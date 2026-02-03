@@ -105,3 +105,64 @@ export const formatDateShort = (date) => {
     return '';
   }
 };
+
+/**
+ * Get month name
+ * @param {Date} date 
+ * @returns {string}
+ */
+export const getMonthName = (date) => {
+  return date.toLocaleDateString('en-US', { month: 'long' });
+};
+
+/**
+ * Get year
+ * @param {Date} date 
+ * @returns {number}
+ */
+export const getYear = (date) => {
+  return date.getFullYear();
+};
+
+/**
+ * Generate calendar days for a given month
+ * @param {Date} date - Any date in the target month
+ * @returns {Array} - Array of date objects representing the calendar grid
+ */
+export const generateCalendarDays = (date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  
+  // First day of the month
+  const firstDay = new Date(year, month, 1);
+  // Last day of the month
+  const lastDay = new Date(year, month + 1, 0);
+  
+  // Start from the Sunday before the first day of the month
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - firstDay.getDay());
+  
+  // End on the Saturday after the last day of the month
+  const endDate = new Date(lastDay);
+  endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
+  
+  const days = [];
+  const currentDate = new Date(startDate);
+  
+  while (currentDate <= endDate) {
+    days.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return days;
+};
+
+/**
+ * Check if a date is in the current month
+ * @param {Date} date 
+ * @param {Date} monthDate 
+ * @returns {boolean}
+ */
+export const isInCurrentMonth = (date, monthDate) => {
+  return date.getMonth() === monthDate.getMonth() && date.getFullYear() === monthDate.getFullYear();
+};

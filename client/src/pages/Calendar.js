@@ -2,183 +2,328 @@ import React, { useState, useEffect } from 'react';
 import { useTask } from '../context/TaskContext';
 import TaskInstanceCard from '../components/TaskInstanceCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import { getLocalDateString, getTodayString, isToday, formatDate } from '../utils/dateUtils';
-import 'react-datepicker/dist/react-datepicker.css';
+import CreateTaskModal from '../components/CreateTaskModal';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { 
+  getLocalDateString, 
+  isToday, 
+  isSameDay,
+  formatDate, 
+  getMonthName, 
+  getYear, 
+  generateCalendarDays, 
+  isInCurrentMonth 
+} from '../utils/dateUtils';
 
 const Calendar = () => {
-  const { taskInstances, isLoading, fetchTaskInstancesForDate, selectedDate } = useTask();
-  // Initialize with today's date, not selectedDate from context
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const { taskInstances, isLoading, fetchTaskInstancesForDate } = useTask();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
+  // Fetch tasks for the selected date
   useEffect(() => {
-    const dateString = getLocalDateString(currentDate);
+    const dateString = getLocalDateString(selectedDate);
+    console.log('Calendar: Fetching tasks for date:', dateString);
     fetchTaskInstancesForDate(dateString);
-  }, [currentDate]);
+  }, [selectedDate, fetchTaskInstancesForDate]);
 
-  const formatDateDisplay = (date) => {
-    return formatDate(date);
+  // Navigate months
+  const navigateMonth = (direction) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(newMonth.getMonth() + direction);
+    setCurrentMonth(newMonth);
   };
 
-  const navigateDate = (direction) => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + direction);
-    setCurrentDate(newDate);
+  // Go to current month
+  const goToCurrentMonth = () => {
+    const today = new Date();
+    setCurrentMonth(today);
+    setSelectedDate(today);
   };
 
-  const goToToday = () => {
-    setCurrentDate(new Date());
+  // Handle date click
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
   };
 
+  // Generate calendar days
+  const calendarDays = generateCalendarDays(currentMonth);
+  const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+  // Filter tasks
   const completedTasks = taskInstances.filter(instance => instance.completed);
   const incompleteTasks = taskInstances.filter(instance => !instance.completed);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="large" />
-      </div>
-    );
-  }
+  // Check if current month is today's month
+  const isCurrentMonth = currentMonth.getMonth() === new Date().getMonth() && 
+                         currentMonth.getFullYear() === new Date().getFullYear();
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-4">
-          <CalendarIcon className="text-primary-600" size={32} />
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
-            <p className="text-gray-600">Browse date-based tasks by date</p>
-          </div>
-        </div>
-        
-        {/* Date Navigation */}
-        <div className="flex items-center justify-between bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigateDate(-1)}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Previous day"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {formatDateDisplay(currentDate)}
-              </h2>
-              {isToday(currentDate) && (
-                <span className="text-sm text-primary-600 font-medium">Today</span>
-              )}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <CalendarIcon className="text-primary-600" size={32} />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
+              <p className="text-gray-600">Monthly view with task management</p>
             </div>
-            
-            <button
-              onClick={() => navigateDate(1)}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Next day"
-            >
-              <ChevronRight size={20} />
-            </button>
           </div>
           
           <div className="flex items-center space-x-3">
-            {!isToday(currentDate) && (
+            {!isCurrentMonth && (
               <button
-                onClick={goToToday}
+                onClick={goToCurrentMonth}
                 className="btn-secondary text-sm"
               >
-                Go to Today
+                Today
               </button>
             )}
-            
-            <div className="relative">
-              <DatePicker
-                selected={currentDate}
-                onChange={setCurrentDate}
-                className="input-field text-sm w-32"
-                dateFormat="MMM dd, yyyy"
-                placeholderText="Pick a date"
-              />
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="btn-primary text-sm inline-flex items-center space-x-2"
+            >
+              <Plus size={16} />
+              <span>New Task</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Two-section layout */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+        {/* Calendar Section */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
+            {/* Month Navigation */}
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={() => navigateMonth(-1)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Previous month"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              
+              <h2 className="text-xl font-semibold text-gray-900">
+                {getMonthName(currentMonth)} {getYear(currentMonth)}
+              </h2>
+              
+              <button
+                onClick={() => navigateMonth(1)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Next month"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="calendar-grid">
+              {/* Week day headers */}
+              {weekDays.map((day) => (
+                <div
+                  key={day}
+                  className="calendar-header"
+                >
+                  {day}
+                </div>
+              ))}
+
+              {/* Calendar days */}
+              {calendarDays.map((date, index) => {
+                const isCurrentMonthDay = isInCurrentMonth(date, currentMonth);
+                const isTodayDate = isToday(date);
+                const isSelected = isSameDay(date, selectedDate);
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleDateClick(date)}
+                    className={`
+                      calendar-day h-12 flex items-center justify-center text-sm font-medium rounded-lg
+                      ${isCurrentMonthDay 
+                        ? 'calendar-day-current-month' 
+                        : 'calendar-day-other-month'
+                      }
+                      ${isTodayDate 
+                        ? 'calendar-day-today' 
+                        : ''
+                      }
+                      ${isSelected && !isTodayDate
+                        ? 'calendar-day-selected' 
+                        : ''
+                      }
+                      ${isSelected && isTodayDate
+                        ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white font-bold ring-2 ring-blue-400 shadow-lg transform scale-105' 
+                        : ''
+                      }
+                    `}
+                    title={formatDate(date)}
+                  >
+                    {date.getDate()}
+                    
+                    {/* Task indicator dot */}
+                    {isCurrentMonthDay && (
+                      <div className="task-indicator"></div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-500">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-100 border-2 border-blue-200 rounded"></div>
+                <span>Today</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-primary-600 rounded"></div>
+                <span>Selected</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Has tasks</span>
+              </div>
             </div>
           </div>
         </div>
-        
-        {/* Stats */}
-        {taskInstances.length > 0 && (
-          <div className="mt-4 flex items-center space-x-6 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-primary-600 rounded-full"></div>
-              <span className="text-gray-600">
-                {incompleteTasks.length} active task{incompleteTasks.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-600">
-                {completedTasks.length} completed task{completedTasks.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* Tasks */}
-      <div className="space-y-6">
-        {/* Active Tasks */}
-        {incompleteTasks.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Active Tasks</h2>
-            <div className="space-y-4">
-              {incompleteTasks.map((taskInstance) => (
-                <TaskInstanceCard key={taskInstance._id} taskInstance={taskInstance} showDateRange={true} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Completed Tasks */}
-        {completedTasks.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-              <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+        {/* Tasks Section */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col overflow-hidden">
+            {/* Tasks Header */}
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {isToday(selectedDate) ? 'Today' : formatDate(selectedDate, { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </h3>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Add task for this date"
+                >
+                  <Plus size={18} />
+                </button>
               </div>
-              <span>Completed Tasks</span>
-            </h2>
-            <div className="space-y-4 opacity-75">
-              {completedTasks.map((taskInstance) => (
-                <TaskInstanceCard key={taskInstance._id} taskInstance={taskInstance} showDateRange={true} />
-              ))}
+              
+              {/* Task Stats */}
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-gray-600">
+                    {incompleteTasks.length} active
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-gray-600">
+                    {completedTasks.length} done
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tasks Content */}
+            <div className="flex-1 overflow-hidden">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <LoadingSpinner size="medium" />
+                </div>
+              ) : taskInstances.length > 0 ? (
+                <div className="h-full overflow-y-auto tasks-scroll">
+                  <div className="p-4 space-y-4">
+                    {/* Active Tasks */}
+                    {incompleteTasks.length > 0 && (
+                      <div>
+                        <div className="flex items-center space-x-2 mb-3 px-2">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                          <h4 className="text-sm font-semibold text-gray-700">
+                            Active Tasks ({incompleteTasks.length})
+                          </h4>
+                        </div>
+                        <div className="space-y-3">
+                          {incompleteTasks.map((taskInstance) => (
+                            <div key={taskInstance._id} className="transform transition-all duration-200 hover:scale-[1.02]">
+                              <TaskInstanceCard 
+                                taskInstance={taskInstance} 
+                                showDateRange={false}
+                                compact={true}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Completed Tasks */}
+                    {completedTasks.length > 0 && (
+                      <div className={incompleteTasks.length > 0 ? 'mt-6 pt-6 border-t border-gray-100' : ''}>
+                        <div className="flex items-center space-x-2 mb-3 px-2">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <h4 className="text-sm font-semibold text-gray-700">
+                            Completed Tasks ({completedTasks.length})
+                          </h4>
+                        </div>
+                        <div className="space-y-3 opacity-75">
+                          {completedTasks.map((taskInstance) => (
+                            <div key={taskInstance._id} className="transform transition-all duration-200 hover:scale-[1.02]">
+                              <TaskInstanceCard 
+                                taskInstance={taskInstance} 
+                                showDateRange={false}
+                                compact={true}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                /* Empty State */
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CalendarIcon className="text-gray-400" size={32} />
+                    </div>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">
+                      No tasks scheduled
+                    </h4>
+                    <p className="text-sm text-gray-500 mb-6 max-w-xs">
+                      {isToday(selectedDate) 
+                        ? "You're all clear for today! Time to relax or add a new task."
+                        : `No tasks scheduled for ${formatDate(selectedDate, { month: 'short', day: 'numeric' })}`
+                      }
+                    </p>
+                    <button
+                      onClick={() => setShowCreateModal(true)}
+                      className="inline-flex items-center space-x-2 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-medium transition-colors"
+                    >
+                      <Plus size={16} />
+                      <span>Add Task</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
-
-        {/* Empty State */}
-        {taskInstances.length === 0 && (
-          <div className="text-center py-12">
-            <CalendarIcon className="mx-auto text-gray-300 mb-4" size={64} />
-            <h3 className="text-xl font-medium text-gray-900 mb-2">
-              No tasks for {isToday(currentDate) ? 'today' : 'this date'}
-            </h3>
-            <p className="text-gray-500 mb-6">
-              {isToday(currentDate) 
-                ? "You don't have any tasks scheduled for today."
-                : `No tasks are scheduled for ${formatDateDisplay(currentDate)}.`
-              }
-            </p>
-            <a
-              href="/create-task"
-              className="btn-primary inline-flex items-center space-x-2"
-            >
-              <span>Create a Task</span>
-            </a>
-          </div>
-        )}
+        </div>
       </div>
+
+      {/* Create Task Modal */}
+      <CreateTaskModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        selectedDate={selectedDate}
+      />
     </div>
   );
 };
