@@ -60,9 +60,12 @@ const getOrCreateTaskInstance = async (taskId, userId, date) => {
 router.get('/date/:date', auth, async (req, res) => {
   try {
     const { date } = req.params;
+    console.log('Server: Received request for date:', date);
+    console.log('Server: User ID:', req.user._id);
     
     // Validate date format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      console.log('Server: Invalid date format:', date);
       return res.status(400).json({ message: 'Invalid date format. Use YYYY-MM-DD' });
     }
     
@@ -71,26 +74,35 @@ router.get('/date/:date', auth, async (req, res) => {
     const targetDate = new Date(year, month - 1, day);
     
     if (isNaN(targetDate.getTime())) {
+      console.log('Server: Invalid date:', date);
       return res.status(400).json({ message: 'Invalid date' });
     }
 
+    console.log('Server: Target date:', targetDate);
+
     // Find all tasks that should be active on this date
     const activeTasks = await Task.findTasksForDate(req.user._id, targetDate);
+    console.log('Server: Found active tasks:', activeTasks.length);
     
     // Get or create instances for each active task
     const taskInstances = [];
     for (const task of activeTasks) {
-      const instance = await getOrCreateTaskInstance(task._id, req.user._id, targetDate);
-      
-      // Populate the task and subtask details
-      await instance.populate([
-        { path: 'taskId', select: 'title startDate endDate' },
-        { path: 'subtaskInstances.subtaskId', select: 'title notes' }
-      ]);
-      
-      taskInstances.push(instance);
+      try {
+        const instance = await getOrCreateTaskInstance(task._id, req.user._id, targetDate);
+        
+        // Populate the task and subtask details
+        await instance.populate([
+          { path: 'taskId', select: 'title startDate endDate' },
+          { path: 'subtaskInstances.subtaskId', select: 'title notes' }
+        ]);
+        
+        taskInstances.push(instance);
+      } catch (instanceError) {
+        console.error('Server: Error creating task instance for task:', task._id, instanceError);
+      }
     }
     
+    console.log('Server: Returning task instances:', taskInstances.length);
     res.json({ taskInstances, date });
   } catch (error) {
     console.error('Get task instances error:', error);

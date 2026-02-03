@@ -83,11 +83,17 @@ taskSchema.statics.findTasksForDate = function(userId, date) {
   const endOfDay = new Date(targetDate);
   endOfDay.setHours(23, 59, 59, 999);
   
-  return this.find({
+  console.log('Task Model: Finding tasks for user:', userId, 'date range:', startOfDay, 'to', endOfDay);
+  
+  const query = {
     userId,
     startDate: { $lte: endOfDay, $ne: null },
     endDate: { $gte: startOfDay, $ne: null }
-  }).populate('subtasks').sort({ createdAt: -1 }); // Sort by newest first
+  };
+  
+  console.log('Task Model: Query:', JSON.stringify(query, null, 2));
+  
+  return this.find(query).populate('subtasks').sort({ createdAt: -1 }); // Sort by newest first
 };
 
 module.exports = mongoose.model('Task', taskSchema);
