@@ -1,30 +1,68 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Calendar, Plus, List } from 'lucide-react';
+import { CheckSquare, Calendar, Plus, Users, Shield, Key, BarChart3 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const MobileNav = () => {
+  const { user } = useAuth();
+
   const navItems = [
     {
-      to: '/today',
-      icon: Home,
-      label: 'Today'
+      to: '/tasks',
+      icon: CheckSquare,
+      label: 'Tasks'
     },
     {
       to: '/calendar',
       icon: Calendar,
       label: 'Calendar'
-    },
-    {
+    }
+  ];
+
+  // Add Create Task for admin users only
+  if (user?.isAdmin) {
+    navItems.push({
       to: '/create-task',
       icon: Plus,
       label: 'Create'
-    },
-    {
-      to: '/all-tasks',
-      icon: List,
-      label: 'All Tasks'
-    }
-  ];
+    });
+  }
+
+  // Add People for admin users only
+  if (user?.isAdmin) {
+    navItems.push({
+      to: '/people',
+      icon: Users,
+      label: 'People'
+    });
+  }
+
+  // Add Whitelist for admin users only
+  if (user?.isAdmin) {
+    navItems.push({
+      to: '/whitelist',
+      icon: Shield,
+      label: 'Whitelist'
+    });
+  }
+
+  // Add Reset Codes for admin users only
+  if (user?.isAdmin) {
+    navItems.push({
+      to: '/reset-codes',
+      icon: Key,
+      label: 'Reset'
+    });
+  }
+
+  // Add Progress for admin users only
+  if (user?.isAdmin) {
+    navItems.push({
+      to: '/progress',
+      icon: BarChart3,
+      label: 'Progress'
+    });
+  }
 
   return (
     <nav className="mobile-nav">

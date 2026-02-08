@@ -90,6 +90,25 @@ router.delete('/:id', auth, async (req, res) => {
       { $pull: { subtasks: id } }
     );
 
+    // IMPORTANT: Remove subtask instances from all existing task instances
+    const TaskInstance = require('../models/TaskInstance');
+    const existingInstances = await TaskInstance.find({ 
+      taskId: subtask.taskId._id, 
+      userId: req.user._id 
+    });
+    
+    console.log(`Found ${existingInstances.length} existing task instances to update (remove subtask)`);
+    
+    for (const instance of existingInstances) {
+      // Remove the subtask instance from the task instance
+      instance.subtaskInstances = instance.subtaskInstances.filter(
+        si => si.subtaskId.toString() !== id
+      );
+      await instance.save();
+    }
+
+    console.log(`Removed subtask from ${existingInstances.length} task instances`);
+
     // Delete the subtask
     await Subtask.findByIdAndDelete(id);
 

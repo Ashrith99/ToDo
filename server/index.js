@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 const subtaskRoutes = require('./routes/subtasks');
 const taskInstanceRoutes = require('./routes/taskInstances');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/subtasks', subtaskRoutes);
 app.use('/api/task-instances', taskInstanceRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

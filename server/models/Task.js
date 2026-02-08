@@ -11,6 +11,10 @@ const taskSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  order: {
+    type: Number,
+    default: 0
+  },
   startDate: {
     type: Date,
     required: false, // Made optional for static tasks
@@ -35,6 +39,11 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false // Optional field to track if task was created by admin
   },
   subtasks: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -93,7 +102,7 @@ taskSchema.statics.findTasksForDate = function(userId, date) {
   
   console.log('Task Model: Query:', JSON.stringify(query, null, 2));
   
-  return this.find(query).populate('subtasks').sort({ createdAt: -1 }); // Sort by newest first
+  return this.find(query).populate('subtasks').sort({ order: 1, createdAt: -1 }); // Sort by order first, then by newest
 };
 
 module.exports = mongoose.model('Task', taskSchema);

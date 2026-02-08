@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target } from 'lucide-react';
+import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target, ChevronUp } from 'lucide-react';
 import { useTask } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
 import SubtaskInstanceItem from './SubtaskInstanceItem';
 import SubtaskForm from './SubtaskForm';
 import ConfirmModal from './ConfirmModal';
@@ -9,7 +10,8 @@ import { formatDateShort } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 const TaskInstanceCard = ({ taskInstance, showDateRange = true, compact = false }) => {
-  const { deleteTask, toggleTaskInstanceComplete } = useTask();
+  const { deleteTask, toggleTaskInstanceComplete, updateTaskOrder } = useTask();
+  const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showSubtaskForm, setShowSubtaskForm] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -45,6 +47,14 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true, compact = false 
         await deleteTask(task._id);
       }
     });
+  };
+
+  const handleMoveUp = async () => {
+    await updateTaskOrder(task._id, 'up');
+  };
+
+  const handleMoveDown = async () => {
+    await updateTaskOrder(task._id, 'down');
   };
 
   const completedSubtasks = taskInstance.subtaskInstances?.filter(si => si.completed).length || 0;
@@ -151,7 +161,30 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true, compact = false 
           </div>
           
           {/* Action Buttons */}
-          <div className="flex items-center space-x-2 ml-4">
+          <div className="flex items-center space-x-1 ml-3">
+            {/* Reorder buttons */}
+            <div className="flex flex-col space-y-0.5">
+              <button
+                onClick={handleMoveUp}
+                className={`${
+                  compact ? 'p-0.5' : 'p-1'
+                } text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200 group`}
+                title="Move task up"
+              >
+                <ChevronUp size={compact ? 10 : 12} className="group-hover:scale-110 transition-transform" />
+              </button>
+              <button
+                onClick={handleMoveDown}
+                className={`${
+                  compact ? 'p-0.5' : 'p-1'
+                } text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200 group`}
+                title="Move task down"
+              >
+                <ChevronDown size={compact ? 10 : 12} className="group-hover:scale-110 transition-transform" />
+              </button>
+            </div>
+            
+            {/* Other action buttons */}
             <button
               onClick={() => setShowSubtaskForm(!showSubtaskForm)}
               className={`${
@@ -161,15 +194,18 @@ const TaskInstanceCard = ({ taskInstance, showDateRange = true, compact = false 
             >
               <Plus size={compact ? 14 : 16} className="group-hover:scale-110 transition-transform" />
             </button>
-            <button
-              onClick={handleDelete}
-              className={`${
-                compact ? 'p-1.5' : 'p-2 md:p-3'
-              } text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group`}
-              title="Delete task"
-            >
-              <Trash2 size={compact ? 14 : 16} className="group-hover:scale-110 transition-transform" />
-            </button>
+            {/* Only show delete button for admin users */}
+            {user?.isAdmin && (
+              <button
+                onClick={handleDelete}
+                className={`${
+                  compact ? 'p-1.5' : 'p-2 md:p-3'
+                } text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group`}
+                title="Delete task"
+              >
+                <Trash2 size={compact ? 14 : 16} className="group-hover:scale-110 transition-transform" />
+              </button>
+            )}
           </div>
         </div>
 

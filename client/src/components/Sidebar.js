@@ -1,8 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Calendar, Plus, List, CheckSquare, X, Sparkles, TrendingUp } from 'lucide-react';
+import { Calendar, Plus, CheckSquare, X, Sparkles, TrendingUp, Users, Shield, Key, BarChart3 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ onClose }) => {
+  const { user } = useAuth();
+
   const navItems = [
     {
       to: '/tasks',
@@ -17,22 +20,63 @@ const Sidebar = ({ onClose }) => {
       label: 'Calendar',
       description: 'Date-based tasks',
       color: 'from-purple-500 to-pink-500'
-    },
-    {
+    }
+  ];
+
+  // Add Create Task tab only for admin users
+  if (user?.isAdmin) {
+    navItems.push({
       to: '/create-task',
       icon: Plus,
       label: 'Create Task',
       description: 'Add new task',
       color: 'from-green-500 to-emerald-500'
-    },
-    {
-      to: '/all-tasks',
-      icon: List,
-      label: 'All Tasks',
-      description: 'View all tasks',
-      color: 'from-orange-500 to-red-500'
-    }
-  ];
+    });
+  }
+
+  // Add People tab for admin users
+  if (user?.isAdmin) {
+    navItems.push({
+      to: '/people',
+      icon: Users,
+      label: 'People',
+      description: 'Assign tasks',
+      color: 'from-red-500 to-orange-500'
+    });
+  }
+
+  // Add Whitelist tab for admin users
+  if (user?.isAdmin) {
+    navItems.push({
+      to: '/whitelist',
+      icon: Shield,
+      label: 'Whitelist',
+      description: 'Manage access',
+      color: 'from-indigo-500 to-purple-500'
+    });
+  }
+
+  // Add Reset Codes tab for admin users
+  if (user?.isAdmin) {
+    navItems.push({
+      to: '/reset-codes',
+      icon: Key,
+      label: 'Reset Codes',
+      description: 'Password recovery',
+      color: 'from-yellow-500 to-orange-500'
+    });
+  }
+
+  // Add Progress tab for admin users
+  if (user?.isAdmin) {
+    navItems.push({
+      to: '/progress',
+      icon: BarChart3,
+      label: 'Progress',
+      description: 'Monitor users',
+      color: 'from-cyan-500 to-blue-500'
+    });
+  }
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">

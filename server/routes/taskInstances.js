@@ -27,14 +27,14 @@ const getOrCreateTaskInstance = async (taskId, userId, date) => {
     date: targetDate
   });
 
-  if (!instance) {
-    // Get the task and its subtasks
-    const task = await Task.findById(taskId).populate('subtasks');
-    if (!task) {
-      throw new Error('Task not found');
-    }
+  // Get the task and its current subtasks
+  const task = await Task.findById(taskId).populate('subtasks');
+  if (!task) {
+    throw new Error('Task not found');
+  }
 
-    // Create subtask instances
+  if (!instance) {
+    // Create new instance with all current subtasks
     const subtaskInstances = task.subtasks.map(subtask => ({
       subtaskId: subtask._id,
       completed: false
@@ -49,6 +49,40 @@ const getOrCreateTaskInstance = async (taskId, userId, date) => {
     });
 
     await instance.save();
+  } else {
+    // Sync existing instance with current subtasks
+    const currentSubtaskIds = new Set(task.subtasks.map(st => st._id.toString()));
+    const instanceSubtaskIds = new Set(instance.subtaskInstances.map(si => si.subtaskId.toString()));
+    
+    let needsUpdate = false;
+    
+    // Add missing subtask instances
+    for (const subtask of task.subtasks) {
+      if (!instanceSubtaskIds.has(subtask._id.toString())) {
+        instance.subtaskInstances.push({
+          subtaskId: subtask._id,
+          completed: false
+        });
+        needsUpdate = true;
+        console.log(`Added missing subtask instance: ${subtask.title}`);
+      }
+    }
+    
+    // Remove subtask instances for deleted subtasks
+    const originalLength = instance.subtaskInstances.length;
+    instance.subtaskInstances = instance.subtaskInstances.filter(si => 
+      currentSubtaskIds.has(si.subtaskId.toString())
+    );
+    
+    if (instance.subtaskInstances.length !== originalLength) {
+      needsUpdate = true;
+      console.log(`Removed ${originalLength - instance.subtaskInstances.length} obsolete subtask instances`);
+    }
+    
+    if (needsUpdate) {
+      await instance.save();
+      console.log(`Synced task instance with current subtasks`);
+    }
   }
 
   return instance;

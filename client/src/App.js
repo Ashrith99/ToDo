@@ -10,7 +10,11 @@ import Register from './pages/Register';
 import Tasks from './pages/Tasks';
 import Calendar from './pages/Calendar';
 import CreateTask from './pages/CreateTask';
-import AllTasks from './pages/AllTasks';
+import People from './pages/People';
+import Whitelist from './pages/Whitelist';
+import ResetCodes from './pages/ResetCodes';
+import ForgotPassword from './pages/ForgotPassword';
+import Progress from './pages/Progress';
 
 function App() {
   return (
@@ -46,6 +50,7 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               
               <Route path="/" element={
                 <ProtectedRoute>
@@ -56,7 +61,10 @@ function App() {
                 <Route path="tasks" element={<Tasks />} />
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="create-task" element={<CreateTask />} />
-                <Route path="all-tasks" element={<AllTasks />} />
+                <Route path="people" element={<People />} />
+                <Route path="whitelist" element={<Whitelist />} />
+                <Route path="reset-codes" element={<ResetCodes />} />
+                <Route path="progress" element={<Progress />} />
               </Route>
               
               <Route path="*" element={<Navigate to="/" replace />} />

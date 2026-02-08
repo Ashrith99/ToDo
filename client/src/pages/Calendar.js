@@ -20,6 +20,54 @@ const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [monthTaskCounts, setMonthTaskCounts] = useState({});
+
+  // Fetch task counts for today and future dates progressively
+  useEffect(() => {
+    const fetchMonthTaskCounts = async () => {
+      const calendarDays = generateCalendarDays(currentMonth);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Only fetch for days in the current month that are today or in the future
+      const daysToFetch = calendarDays.filter(date => {
+        const dateToCheck = new Date(date);
+        dateToCheck.setHours(0, 0, 0, 0);
+        return isInCurrentMonth(date, currentMonth) && dateToCheck >= today;
+      });
+      
+      // Sort by date (today first, then future dates)
+      daysToFetch.sort((a, b) => a - b);
+      
+      // Fetch counts progressively and update state immediately
+      for (const date of daysToFetch) {
+        const dateString = getLocalDateString(date);
+        try {
+          const response = await fetch(`/api/task-instances/date/${dateString}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const pendingCount = data.taskInstances.filter(t => !t.completed).length;
+            
+            // Update state immediately for each date
+            setMonthTaskCounts(prev => ({
+              ...prev,
+              [dateString]: pendingCount
+            }));
+          }
+        } catch (error) {
+          console.error(`Error fetching tasks for ${dateString}:`, error);
+        }
+      }
+    };
+
+    // Reset counts when month changes
+    setMonthTaskCounts({});
+    fetchMonthTaskCounts();
+  }, [currentMonth]);
 
   // Fetch tasks for the selected date
   useEffect(() => {
@@ -27,6 +75,18 @@ const Calendar = () => {
     console.log('Calendar: Fetching tasks for date:', dateString);
     fetchTaskInstancesForDate(dateString);
   }, [selectedDate, fetchTaskInstancesForDate]);
+
+  // Update count for selected date when tasks change
+  useEffect(() => {
+    const dateString = getLocalDateString(selectedDate);
+    const pendingCount = taskInstances.filter(t => !t.completed).length;
+    
+    // Update the count for the selected date
+    setMonthTaskCounts(prev => ({
+      ...prev,
+      [dateString]: pendingCount
+    }));
+  }, [taskInstances, selectedDate]);
 
   // Navigate months
   const navigateMonth = (direction) => {
@@ -137,13 +197,15 @@ const Calendar = () => {
                 const isCurrentMonthDay = isInCurrentMonth(date, currentMonth);
                 const isTodayDate = isToday(date);
                 const isSelected = isSameDay(date, selectedDate);
+                const dateString = getLocalDateString(date);
+                const taskCount = monthTaskCounts[dateString] || 0;
                 
                 return (
                   <button
                     key={index}
                     onClick={() => handleDateClick(date)}
                     className={`
-                      calendar-day h-12 flex items-center justify-center text-sm font-medium rounded-lg
+                      calendar-day h-12 flex items-center justify-center text-sm font-medium rounded-lg relative
                       ${isCurrentMonthDay 
                         ? 'calendar-day-current-month' 
                         : 'calendar-day-other-month'
@@ -165,9 +227,23 @@ const Calendar = () => {
                   >
                     {date.getDate()}
                     
-                    {/* Task indicator dot */}
-                    {isCurrentMonthDay && (
-                      <div className="task-indicator"></div>
+                    {/* Task count badge */}
+                    {isCurrentMonthDay && taskCount > 0 && (
+                      <span className={`
+                        absolute -top-1 -right-1 
+                        min-w-[18px] h-[18px] 
+                        flex items-center justify-center 
+                        text-[10px] font-bold 
+                        rounded-full 
+                        ${isSelected 
+                          ? 'bg-white text-blue-600' 
+                          : 'bg-red-500 text-white'
+                        }
+                        shadow-sm
+                        px-1
+                      `}>
+                        {taskCount > 9 ? '9+' : taskCount}
+                      </span>
                     )}
                   </button>
                 );
@@ -185,8 +261,8 @@ const Calendar = () => {
                 <span>Selected</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Has tasks</span>
+                <div className="w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold">3</div>
+                <span>Pending tasks</span>
               </div>
             </div>
           </div>

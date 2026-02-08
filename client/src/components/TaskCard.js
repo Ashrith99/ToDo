@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target, CheckSquare } from 'lucide-react';
+import { Calendar, Plus, Trash2, ChevronDown, ChevronRight, Target, CheckSquare, ChevronUp } from 'lucide-react';
 import { useTask } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
 import SubtaskItem from './SubtaskItem';
 import SubtaskForm from './SubtaskForm';
 import ConfirmModal from './ConfirmModal';
@@ -9,7 +10,8 @@ import { formatDateShort } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 
 const TaskCard = ({ task, showDateRange = true }) => {
-  const { deleteTask, updateTask } = useTask();
+  const { deleteTask, updateTask, updateTaskOrder } = useTask();
+  const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showSubtaskForm, setShowSubtaskForm] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -45,6 +47,14 @@ const TaskCard = ({ task, showDateRange = true }) => {
         await deleteTask(task._id);
       }
     });
+  };
+
+  const handleMoveUp = async () => {
+    await updateTaskOrder(task._id, 'up');
+  };
+
+  const handleMoveDown = async () => {
+    await updateTaskOrder(task._id, 'down');
   };
 
   const completedSubtasks = task.subtasks?.filter(subtask => subtask.completed).length || 0;
@@ -154,6 +164,25 @@ const TaskCard = ({ task, showDateRange = true }) => {
           
           {/* Action Buttons */}
           <div className="flex items-center space-x-1 ml-3">
+            {/* Reorder buttons */}
+            <div className="flex flex-col space-y-0.5">
+              <button
+                onClick={handleMoveUp}
+                className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200 group"
+                title="Move task up"
+              >
+                <ChevronUp size={10} className="group-hover:scale-110 transition-transform" />
+              </button>
+              <button
+                onClick={handleMoveDown}
+                className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200 group"
+                title="Move task down"
+              >
+                <ChevronDown size={10} className="group-hover:scale-110 transition-transform" />
+              </button>
+            </div>
+            
+            {/* Other action buttons */}
             <button
               onClick={() => setShowSubtaskForm(!showSubtaskForm)}
               className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
@@ -161,13 +190,16 @@ const TaskCard = ({ task, showDateRange = true }) => {
             >
               <Plus size={14} className="group-hover:scale-110 transition-transform" />
             </button>
-            <button
-              onClick={handleDelete}
-              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
-              title="Delete task"
-            >
-              <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
-            </button>
+            {/* Only show delete button for admin users */}
+            {user?.isAdmin && (
+              <button
+                onClick={handleDelete}
+                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                title="Delete task"
+              >
+                <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
+              </button>
+            )}
           </div>
         </div>
 

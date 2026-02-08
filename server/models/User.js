@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters']
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
@@ -36,6 +40,15 @@ userSchema.pre('save', async function(next) {
   } catch (error) {
     next(error);
   }
+});
+
+// Set admin status for specific email
+userSchema.pre('save', function(next) {
+  // Automatically set admin status for the admin email
+  if (this.email === 'admin@afterlife.org.in') {
+    this.isAdmin = true;
+  }
+  next();
 });
 
 // Compare password method

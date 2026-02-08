@@ -309,6 +309,29 @@ export const TaskProvider = ({ children }) => {
     }
   };
 
+  // Update task order
+  const updateTaskOrder = useCallback(async (taskId, direction) => {
+    try {
+      await taskAPI.updateTaskOrder(taskId, direction);
+      
+      // Refresh the appropriate task list
+      const currentSelectedDate = state.selectedDate;
+      if (currentSelectedDate) {
+        // Refresh task instances for calendar
+        fetchTaskInstancesForDate(currentSelectedDate);
+      }
+      // Also refresh static tasks
+      fetchStaticTasks();
+      
+      toast.success(`Task moved ${direction}`);
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to update task order';
+      toast.error(message);
+      return { success: false, message };
+    }
+  }, [state.selectedDate, fetchTaskInstancesForDate, fetchStaticTasks]);
+
   // Delete task
   const deleteTask = async (taskId) => {
     try {
@@ -328,6 +351,14 @@ export const TaskProvider = ({ children }) => {
     try {
       const response = await taskAPI.createSubtask(taskId, subtaskData);
       dispatch({ type: 'ADD_SUBTASK', payload: { ...response.data.subtask, taskId } });
+      
+      // Refresh task instances if we're viewing a specific date (for calendar view)
+      const currentSelectedDate = state.selectedDate;
+      if (currentSelectedDate) {
+        console.log('TaskContext: Refreshing task instances after subtask creation');
+        fetchTaskInstancesForDate(currentSelectedDate);
+      }
+      
       toast.success('Subtask created successfully');
       return { success: true, subtask: response.data.subtask };
     } catch (error) {
@@ -355,6 +386,14 @@ export const TaskProvider = ({ children }) => {
     try {
       await subtaskAPI.deleteSubtask(subtaskId);
       dispatch({ type: 'DELETE_SUBTASK', payload: subtaskId });
+      
+      // Refresh task instances if we're viewing a specific date (for calendar view)
+      const currentSelectedDate = state.selectedDate;
+      if (currentSelectedDate) {
+        console.log('TaskContext: Refreshing task instances after subtask deletion');
+        fetchTaskInstancesForDate(currentSelectedDate);
+      }
+      
       toast.success('Subtask deleted successfully');
       return { success: true };
     } catch (error) {
@@ -375,6 +414,7 @@ export const TaskProvider = ({ children }) => {
     toggleSubtaskInstanceComplete,
     createTask,
     updateTask,
+    updateTaskOrder,
     deleteTask,
     createSubtask,
     updateSubtask,
