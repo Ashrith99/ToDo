@@ -74,7 +74,7 @@ const Login = () => {
             Welcome Back
           </h2>
           <p className="text-gray-600 text-lg">
-            Sign in to your premium account
+            Sign in to After Life
           </p>
           <p className="mt-4 text-sm text-gray-500">
             Don't have an account?{' '}

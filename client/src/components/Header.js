@@ -23,7 +23,7 @@ const Header = ({ onMenuClick }) => {
               <Sparkles className="text-white" size={20} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold gradient-text">TodoPro</h1>
+              <h1 className="text-2xl font-bold gradient-text">After Life</h1>
               <p className="text-sm text-gray-500 hidden lg:block">Premium task management</p>
             </div>
           </div>
@@ -33,7 +33,7 @@ const Header = ({ onMenuClick }) => {
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <Sparkles className="text-white" size={16} />
             </div>
-            <h1 className="text-xl font-bold gradient-text">TodoPro</h1>
+            <h1 className="text-xl font-bold gradient-text">After Life</h1>
           </div>
         </div>
         

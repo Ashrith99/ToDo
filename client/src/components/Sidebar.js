@@ -88,7 +88,7 @@ const Sidebar = ({ onClose }) => {
               <Sparkles className="text-white" size={20} />
             </div>
             <div>
-              <span className="text-xl font-bold gradient-text">TodoPro</span>
+              <span className="text-xl font-bold gradient-text">After Life</span>
               <div className="flex items-center space-x-1 mt-1">
                 <TrendingUp size={12} className="text-green-500" />
                 <span className="text-xs text-gray-500 font-medium">Premium</span>
@@ -146,7 +146,7 @@ const Sidebar = ({ onClose }) => {
             Built with ❤️ AfterLife
           </div>
           <div className="text-xs text-gray-400 mt-1">
-            Version 2.0 Premium
+            Version 2.0 Platinum
           </div>
         </div>
       </div>
