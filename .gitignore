@@ -81,7 +81,9 @@ dist
 
 # Gatsby files
 .cache/
-public
+
+# Gatsby public folder (not React public folder)
+# Note: client/public should NOT be ignored
 
 # Storybook build outputs
 .out
@@ -170,6 +172,9 @@ jspm_packages/
 # React build files
 client/build/
 client/dist/
+
+# Important: Do NOT ignore client/public folder
+!client/public/
 
 # Production build
 build/

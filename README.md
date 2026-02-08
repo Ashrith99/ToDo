@@ -4,12 +4,18 @@ A production-ready personal task management application with date-based tasks an
 
 ## Features
 
-- **Date-based Tasks**: Create tasks with start and end dates that appear daily within the range
-- **Nested Subtasks**: Tasks can contain multiple subtasks with completion status and notes
-- **Daily View**: Landing page shows today's tasks and their completion status
-- **Calendar Navigation**: Browse tasks by date with sidebar navigation
-- **User Authentication**: JWT-based authentication system
-- **Clean UI**: Modern interface built with Tailwind CSS
+- **Date-based Task Instances**: Each day gets its own completion status for date-based tasks
+- **Independent Daily Progress**: Completing a task today doesn't affect other days
+- **Two Task Types**:
+  - **Static Tasks**: No dates, can be completed anytime (Tasks tab)
+  - **Date-based Tasks**: Appear daily within date ranges (Calendar tab)
+- **Nested Subtasks**: Tasks can have optional subtasks with individual completion tracking
+- **Daily View**: Calendar shows tasks scheduled for specific dates with day-specific progress
+- **Task Management**: Create, update, delete tasks with comprehensive validation
+- **User Authentication**: Secure JWT-based authentication system
+- **Clean UI**: Modern, responsive design with smooth animations
+- **Search & Filter**: Advanced task filtering and sorting capabilities
+- **Progress Tracking**: Visual progress bars and completion states per day
 
 ## Tech Stack
 
@@ -195,18 +201,16 @@ Response:
 ## Development Notes
 
 ### Key Features Implemented
-- ✅ JWT-based authentication with secure password hashing
-- ✅ Date-range based tasks that appear daily within specified periods
-- ✅ Nested subtasks with completion tracking and notes
-- ✅ Daily view showing today's tasks with progress indicators
-- ✅ Calendar navigation to browse tasks by date
-- ✅ Task creation with date range validation
-- ✅ All tasks view with search, filter, and sort capabilities
-- ✅ Responsive design with Tailwind CSS
-- ✅ Real-time progress tracking with visual indicators
-- ✅ Clean, minimal UI with smooth transitions
-- ✅ Comprehensive error handling and validation
-- ✅ Modular component architecture
+- ✅ **Daily Task Instances** - Each day gets independent completion status
+- ✅ **Auto-completion Logic**:
+  - **Task → Subtasks**: Marking task complete auto-completes all subtasks
+  - **Subtasks → Task**: Completing all subtasks auto-completes the main task
+  - **Smart Unchecking**: Unchecking task or any subtask intelligently updates related items
+- ✅ **Visual Feedback**: Toast notifications show when auto-completion occurs
+- ✅ **Two Task Types**: Static tasks (Tasks tab) and date-based tasks (Calendar tab)
+- ✅ **Independent Daily Progress**: Each day tracks completion separately
+- ✅ **Nested Subtasks**: Optional subtasks with individual completion tracking
+- ✅ **Real-time Sync**: UI updates immediately reflect completion changes
 
 ### Edge Cases Handled
 - Date range validation (end date must be >= start date)
