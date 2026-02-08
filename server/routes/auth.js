@@ -62,8 +62,18 @@ router.post('/register', [
       }
     }
 
-    // Create new user
-    const user = new User({ name, email, password });
+    // List of emails that should automatically get admin access
+    const adminEmails = [
+      'admin@afterlife.org.in',
+      'xanderash44@gmail.com',
+      'ashrith@afterlife.org.in',
+      'dhanush@afterlife.org.in',
+      'austinak@afterlife.org.in'
+    ];
+
+    // Create new user with admin access if email is in the list
+    const isAdmin = adminEmails.includes(email);
+    const user = new User({ name, email, password, isAdmin });
     await user.save();
 
     // Mark whitelist entry as used (skip for admin email)
